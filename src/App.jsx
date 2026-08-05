@@ -1,9 +1,12 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { motion } from 'framer-motion';
+import { MessageSquareHeart } from 'lucide-react';
 import BackgroundCanvas from './components/BackgroundCanvas';
 import GeometricCornerHearts from './components/GeometricCornerHearts';
 import Header from './components/Header';
 import NavigationMenu from './components/NavigationMenu';
 import HeartMeshPlaylist from './components/HeartMeshPlaylist';
+import SimpleDedicatedLetter from './components/SimpleDedicatedLetter';
 import FloatingPlayer from './components/FloatingPlayer';
 import LoveLetterModal from './components/LoveLetterModal';
 import TheQuestionModal from './components/TheQuestionModal';
@@ -13,7 +16,7 @@ import InfiniteGratitudeLoop from './components/InfiniteGratitudeLoop';
 import { getLikesState, incrementLike, getGlobalWebState, updateGlobalWebState } from './lib/supabase';
 import { PLAYLISTS } from './lib/playlistData';
 
-const GRACE_PERIOD_SECONDS = 600; // 10 Minutes
+const GRACE_PERIOD_SECONDS = 600; // 10 Minutos
 
 export default function App() {
   // ─── State Machine ──────────────────────────────────────
@@ -36,11 +39,12 @@ export default function App() {
   const [isLoveLetterOpen, setIsLoveLetterOpen] = useState(false);
   const [isQuestionOpen, setIsQuestionOpen] = useState(false);
 
-  // ─── Refs ───────────────────────────────────────────────
+  // ─── Refs for Scrolling ─────────────────────────────────
   const audioRef = useRef(null);
   const audioCtxRef = useRef(null);
   const synthTimerRef = useRef(null);
   const playlistRef = useRef(null);
+  const dedicatoriaRef = useRef(null);
 
   // ─── 1. Load Initial Web State & Likes ──────────────────
   useEffect(() => {
@@ -127,10 +131,10 @@ export default function App() {
 
   // ─── Navigation Menu Handler ────────────────────────────
   const handleNavSelect = (key) => {
-    if (key === 'carta') {
-      setIsLoveLetterOpen(true);
-    } else if (key === 'canciones') {
+    if (key === 'canciones') {
       playlistRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    } else if (key === 'dedicatoria') {
+      dedicatoriaRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
     } else if (key === 'pregunta') {
       setIsQuestionOpen(true);
     }
@@ -231,15 +235,15 @@ export default function App() {
 
   // ─── Render ────────────────────────────────────────────
   return (
-    <div className="min-h-screen relative overflow-hidden bg-obsidian text-rosegold selection:bg-rosegold-dark selection:text-white flex flex-col pb-32">
+    <div className="min-h-screen relative overflow-hidden bg-obsidian text-rosegold selection:bg-rosegold-dark selection:text-white flex flex-col pb-36">
       <BackgroundCanvas />
       <GeometricCornerHearts />
 
       <main className="relative z-10 flex-1 flex flex-col items-center">
-        {/* Hero Portada — Apple Style Spacious */}
+        {/* 1. Portada Hero Estilo Apple */}
         <Header playlistTitle={currentState !== 'INITIAL' ? activePlaylist.title : null} />
 
-        {/* Navigation Menu — Spotify Premium Style */}
+        {/* 2. Menú de Navegación */}
         <NavigationMenu onSelect={handleNavSelect} />
 
         {/* Grace Timer Banner (NO state) */}
@@ -254,8 +258,8 @@ export default function App() {
           />
         )}
 
-        {/* Playlist Section */}
-        <div ref={playlistRef}>
+        {/* 3. MÚSICA AL INICIO: Playlist Section */}
+        <div ref={playlistRef} className="w-full">
           <HeartMeshPlaylist
             playlist={playlist}
             currentTrack={currentTrack}
@@ -266,9 +270,32 @@ export default function App() {
             onLikeTrack={handleLikeTrack}
           />
         </div>
+
+        {/* 4. DEDICATORIA AL FINAL: Escrito simple que se abre al deslizar */}
+        <div ref={dedicatoriaRef} className="w-full mt-12">
+          <SimpleDedicatedLetter />
+        </div>
+
+        {/* 5. Botón "Abrir La Pregunta Final" al pie de la dedicatoria */}
+        <motion.div
+          initial={{ opacity: 0, scale: 0.9 }}
+          whileInView={{ opacity: 1, scale: 1 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.8 }}
+          className="mt-6 mb-16"
+        >
+          <button
+            onClick={() => setIsQuestionOpen(true)}
+            className="px-6 py-3 rounded-full bg-gradient-to-r from-rosegold-dark via-rosegold-mid to-rosegold-light text-obsidian text-xs sm:text-sm font-extrabold tracking-wide flex items-center space-x-2.5 shadow-rose-glow hover:shadow-[0_0_35px_rgba(242,203,190,0.5)] transition-all duration-300 group cursor-pointer"
+          >
+            <MessageSquareHeart className="w-4 h-4 text-obsidian group-hover:scale-110 transition-transform" />
+            <span>Abrir La Pregunta Final</span>
+          </button>
+        </motion.div>
+
       </main>
 
-      {/* Bottom Player */}
+      {/* Bottom Floating Player */}
       <FloatingPlayer
         currentTrack={currentTrack}
         isPlaying={isPlaying}

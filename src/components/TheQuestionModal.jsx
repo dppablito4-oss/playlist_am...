@@ -98,7 +98,7 @@ export default function TheQuestionModal({ isOpen, onClose, onSelectDecision }) 
 
           {/* Question Quote Box */}
           <div className="bg-obsidian/70 rounded-2xl p-5 border border-rosegold-deep/30 mb-8 text-sm sm:text-base text-rosegold-light font-serif leading-relaxed italic shadow-inner">
-            "Si después de todo lo que vivimos, lo que aprendí y el hombre en el que me convertí... ¿quisieras intentarlo de nuevo desde cero?"
+            "Si después de todo lo que vivimos, lo que aprendí y el hombre en el que me convertí... ¿quisieras intentarlo de nuevo, esta vez desde la calma?"
           </div>
 
           {/* 4 Decision Buttons Grid */}
@@ -158,10 +158,6 @@ export default function TheQuestionModal({ isOpen, onClose, onSelectDecision }) 
             </motion.button>
 
           </div>
-
-          <p className="text-[10px] text-rosegold-deep/60 mt-4 italic font-light">
-            * Los botones SÍ y NO requieren 3 confirmaciones para evitar clics accidentales.
-          </p>
 
         </motion.div>
       </div>

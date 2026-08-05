@@ -15,7 +15,7 @@ import InfiniteGratitudeLoop from './components/InfiniteGratitudeLoop';
 import { getLikesState, incrementLike, getGlobalWebState, updateGlobalWebState } from './lib/supabase';
 import { PLAYLISTS } from './lib/playlistData';
 
-const FAREWELL_TIMEOUT_SECONDS = 30; // 30 Segundos para el pase al mensaje final
+const FAREWELL_TIMEOUT_SECONDS = 30; // Timeout de prueba en 30s si no escucha activa
 
 export default function App() {
   // ─── State Machine ──────────────────────────────────────
@@ -85,7 +85,7 @@ export default function App() {
     };
   }, []);
 
-  // ─── 2. Timer de 30 Segundos para Estado 'NO' ─────────────
+  // ─── 2. Timer de Respaldo para Estado 'NO' ──────────────
   useEffect(() => {
     if (currentState !== 'NO') return;
 
@@ -93,9 +93,12 @@ export default function App() {
       setSecondsLeft((prev) => {
         if (prev <= 1) {
           clearInterval(interval);
-          setCurrentState('EXPIRED');
+          // Silencio de 2 segundos antes del fade final
           if (audioRef.current) audioRef.current.pause();
           setIsPlaying(false);
+          setTimeout(() => {
+            setCurrentState('EXPIRED');
+          }, 2000);
           return 0;
         }
         return prev - 1;
@@ -198,6 +201,20 @@ export default function App() {
 
   const handleSkipNext = () => {
     const i = playlist.findIndex(t => t.id === currentTrack?.id);
+    
+    // Si estamos en el estado NO y es la última canción de la playlist:
+    // 1. Silencio de 2 segundos
+    // 2. Transición suave Fade al mensaje final de gratitud
+    if (currentState === 'NO' && i === playlist.length - 1) {
+      if (audioRef.current) audioRef.current.pause();
+      setIsPlaying(false);
+      
+      setTimeout(() => {
+        setCurrentState('EXPIRED');
+      }, 2000);
+      return;
+    }
+
     handleSelectTrack(playlist[(i + 1) % playlist.length]);
   };
 

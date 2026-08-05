@@ -50,7 +50,7 @@ export const PLAYLISTS = {
     note: {
       heading: "Nota de Alegría",
       body: "Gracias por la valentía de elegirnos otra vez. Sin el peso del pasado, construyamos algo increíble desde cero.",
-      signature: "— Samuel (S&S)",
+      signature: "— Samuel",
       emoji: "🌹"
     },
     tracks: [
@@ -150,9 +150,10 @@ export const PLAYLISTS = {
     title: "Escuchar la despedida",
     theme: "rose",
     note: {
-      heading: "Nota de Despedida Definitiva",
-      body: "Acepto tu decisión. Me duele, pero te quiero libre. Gracias por haber sido mi primer gran amor. Te deseo de corazón salud, éxito y paz en tu camino. Adiós, Saly.",
-      signature: "— Samuel, para siempre agradecido (S&S)",
+      heading: "Antes de terminar...",
+      body: "Acepto tu decisión. Aunque me duela, respeto el camino que has elegido. Gracias por haber sido mi primer gran amor. Te deseo paz, salud y felicidad en tu camino. Cuídate mucho.",
+      signature: "— Samuel",
+      emoji: "✨"
     },
     tracks: [
       {

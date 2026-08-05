@@ -1,15 +1,8 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { Clock, ShieldAlert } from 'lucide-react';
+import { ShieldAlert, Music } from 'lucide-react';
 
-export default function GraceTimerBanner({ secondsLeft }) {
-  const formatTimer = (secs) => {
-    if (secs <= 0) return '00:00';
-    const m = Math.floor(secs / 60);
-    const s = secs % 60;
-    return `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
-  };
-
+export default function GraceTimerBanner() {
   return (
     <motion.div
       initial={{ opacity: 0, y: -15 }}
@@ -25,19 +18,19 @@ export default function GraceTimerBanner({ secondsLeft }) {
           </div>
           <div>
             <h4 className="text-xs sm:text-sm font-bold text-rose-200 uppercase tracking-wider">
-              Periodo de Gracia Activo (10 Minutos)
+              Playlist de Despedida Activa
             </h4>
-            <p className="text-[11px] text-rose-300/80 font-light mt-0.5">
-              Al finalizar el contador, la página pasará al bucle infinito de gratitud.
+            <p className="text-[11px] text-rose-300/90 font-light mt-0.5">
+              Al finalizar de escuchar la playlist, esta página se cerrará definitivamente.
             </p>
           </div>
         </div>
 
-        {/* Right: Countdown Clock Display */}
-        <div className="flex items-center space-x-2 bg-black/50 px-4 py-2 rounded-xl border border-rose-500/30">
-          <Clock className="w-4 h-4 text-rose-400 animate-spin-slow" />
-          <span className="font-mono text-lg sm:text-xl font-bold text-rose-300 tracking-wider">
-            {formatTimer(secondsLeft)}
+        {/* Right: Badge */}
+        <div className="flex items-center space-x-2 bg-black/50 px-3 py-1.5 rounded-xl border border-rose-500/30">
+          <Music className="w-4 h-4 text-rose-400 animate-pulse" />
+          <span className="text-xs font-medium text-rose-300 tracking-wider uppercase">
+            Cierre al terminar
           </span>
         </div>
 

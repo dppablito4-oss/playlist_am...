@@ -4,7 +4,6 @@ import { MessageSquareHeart } from 'lucide-react';
 import BackgroundCanvas from './components/BackgroundCanvas';
 import GeometricCornerHearts from './components/GeometricCornerHearts';
 import Header from './components/Header';
-import NavigationMenu from './components/NavigationMenu';
 import HeartMeshPlaylist from './components/HeartMeshPlaylist';
 import SimpleDedicatedLetter from './components/SimpleDedicatedLetter';
 import FloatingPlayer from './components/FloatingPlayer';
@@ -16,12 +15,10 @@ import InfiniteGratitudeLoop from './components/InfiniteGratitudeLoop';
 import { getLikesState, incrementLike, getGlobalWebState, updateGlobalWebState } from './lib/supabase';
 import { PLAYLISTS } from './lib/playlistData';
 
-const GRACE_PERIOD_SECONDS = 600; // 10 Minutos
-
 export default function App() {
   // ─── State Machine ──────────────────────────────────────
+  // 'INITIAL' | 'YES' | 'TIME' | 'MAYBE' | 'NO' | 'EXPIRED'
   const [currentState, setCurrentState] = useState('INITIAL');
-  const [secondsLeft, setSecondsLeft] = useState(GRACE_PERIOD_SECONDS);
 
   const activePlaylist = PLAYLISTS[currentState] || PLAYLISTS.INITIAL;
   const playlist = activePlaylist.tracks;
@@ -39,29 +36,18 @@ export default function App() {
   const [isLoveLetterOpen, setIsLoveLetterOpen] = useState(false);
   const [isQuestionOpen, setIsQuestionOpen] = useState(false);
 
-  // ─── Refs for Scrolling ─────────────────────────────────
+  // ─── Refs ───────────────────────────────────────────────
   const audioRef = useRef(null);
   const audioCtxRef = useRef(null);
   const synthTimerRef = useRef(null);
-  const playlistRef = useRef(null);
-  const dedicatoriaRef = useRef(null);
 
   // ─── 1. Load Initial Web State & Likes ──────────────────
   useEffect(() => {
     getLikesState().then(setLikesMap);
 
     getGlobalWebState().then((stateData) => {
-      const { respuesta, fecha_respuesta } = stateData;
-
-      if (respuesta === 'NO' && fecha_respuesta) {
-        const elapsed = Math.floor((Date.now() - new Date(fecha_respuesta).getTime()) / 1000);
-        if (elapsed >= GRACE_PERIOD_SECONDS) {
-          setCurrentState('EXPIRED');
-        } else {
-          setCurrentState('NO');
-          setSecondsLeft(GRACE_PERIOD_SECONDS - elapsed);
-        }
-      } else if (['YES', 'TIME', 'MAYBE'].includes(respuesta)) {
+      const { respuesta } = stateData;
+      if (['YES', 'TIME', 'MAYBE', 'NO'].includes(respuesta)) {
         setCurrentState(respuesta);
         if (PLAYLISTS[respuesta]) setCurrentTrack(PLAYLISTS[respuesta].tracks[0]);
       }
@@ -87,31 +73,11 @@ export default function App() {
     };
   }, []);
 
-  // ─── 2. Grace Timer for 'NO' ────────────────────────────
-  useEffect(() => {
-    if (currentState !== 'NO') return;
-    const interval = setInterval(() => {
-      setSecondsLeft((prev) => {
-        if (prev <= 1) {
-          clearInterval(interval);
-          setCurrentState('EXPIRED');
-          if (audioRef.current) audioRef.current.pause();
-          setIsPlaying(false);
-          return 0;
-        }
-        return prev - 1;
-      });
-    }, 1000);
-    return () => clearInterval(interval);
-  }, [currentState]);
-
-  // ─── 3. State Transition ─────────────────────────────────
+  // ─── 2. State Transition ─────────────────────────────────
   const handleSelectDecision = async (decision) => {
     setCurrentState(decision);
     stopSynthMelodyLoop();
     await updateGlobalWebState(decision);
-
-    if (decision === 'NO') setSecondsLeft(GRACE_PERIOD_SECONDS);
 
     const newPlaylist = PLAYLISTS[decision] || PLAYLISTS.INITIAL;
     const firstTrack = newPlaylist.tracks[0];
@@ -127,17 +93,6 @@ export default function App() {
           .catch(() => { setIsPlaying(true); startSynthMelodyLoop(); });
       }
     }, 200);
-  };
-
-  // ─── Navigation Menu Handler ────────────────────────────
-  const handleNavSelect = (key) => {
-    if (key === 'canciones') {
-      playlistRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    } else if (key === 'dedicatoria') {
-      dedicatoriaRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    } else if (key === 'pregunta') {
-      setIsQuestionOpen(true);
-    }
   };
 
   // ─── Web Audio Synth Fallback ───────────────────────────
@@ -207,6 +162,15 @@ export default function App() {
 
   const handleSkipNext = () => {
     const i = playlist.findIndex(t => t.id === currentTrack?.id);
+    
+    // Si estamos en el estado NO y es la última canción de la playlist, al terminar se cierra la web (EXPIRED)
+    if (currentState === 'NO' && i === playlist.length - 1) {
+      setCurrentState('EXPIRED');
+      if (audioRef.current) audioRef.current.pause();
+      setIsPlaying(false);
+      return;
+    }
+
     handleSelectTrack(playlist[(i + 1) % playlist.length]);
   };
 
@@ -243,23 +207,18 @@ export default function App() {
         {/* 1. Portada Hero Estilo Apple */}
         <Header playlistTitle={currentState !== 'INITIAL' ? activePlaylist.title : null} />
 
-        {/* 2. Menú de Navegación */}
-        <NavigationMenu onSelect={handleNavSelect} />
+        {/* 2. Mensaje de Despedida o Nota de Estado (si aplica) */}
+        {currentState === 'NO' && <GraceTimerBanner />}
 
-        {/* Grace Timer Banner (NO state) */}
-        {currentState === 'NO' && <GraceTimerBanner secondsLeft={secondsLeft} />}
-
-        {/* State Banner Note */}
         {currentState !== 'INITIAL' && activePlaylist.note && (
           <StateBannerNote
             state={currentState}
             note={activePlaylist.note}
-            onResetQuestion={() => setIsQuestionOpen(true)}
           />
         )}
 
-        {/* 3. MÚSICA AL INICIO: Playlist Section */}
-        <div ref={playlistRef} className="w-full">
+        {/* 3. MÚSICA DE UNA: Playlist Section Directa */}
+        <div className="w-full">
           <HeartMeshPlaylist
             playlist={playlist}
             currentTrack={currentTrack}
@@ -271,27 +230,29 @@ export default function App() {
           />
         </div>
 
-        {/* 4. DEDICATORIA AL FINAL: Escrito simple que se abre al deslizar */}
-        <div ref={dedicatoriaRef} className="w-full mt-12">
+        {/* 4. DEDICATORIA AL FINAL: Escrito simple */}
+        <div className="w-full mt-12">
           <SimpleDedicatedLetter />
         </div>
 
-        {/* 5. Botón "Abrir La Pregunta Final" al pie de la dedicatoria */}
-        <motion.div
-          initial={{ opacity: 0, scale: 0.9 }}
-          whileInView={{ opacity: 1, scale: 1 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.8 }}
-          className="mt-6 mb-16"
-        >
-          <button
-            onClick={() => setIsQuestionOpen(true)}
-            className="px-6 py-3 rounded-full bg-gradient-to-r from-rosegold-dark via-rosegold-mid to-rosegold-light text-obsidian text-xs sm:text-sm font-extrabold tracking-wide flex items-center space-x-2.5 shadow-rose-glow hover:shadow-[0_0_35px_rgba(242,203,190,0.5)] transition-all duration-300 group cursor-pointer"
+        {/* 5. Botón "Abrir La Pregunta Final" al pie de la dedicatoria (solo si está en INITIAL o SÍ/TIEMPO/MAYBE) */}
+        {currentState !== 'NO' && (
+          <motion.div
+            initial={{ opacity: 0, scale: 0.9 }}
+            whileInView={{ opacity: 1, scale: 1 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.8 }}
+            className="mt-6 mb-16"
           >
-            <MessageSquareHeart className="w-4 h-4 text-obsidian group-hover:scale-110 transition-transform" />
-            <span>Abrir La Pregunta Final</span>
-          </button>
-        </motion.div>
+            <button
+              onClick={() => setIsQuestionOpen(true)}
+              className="px-6 py-3 rounded-full bg-gradient-to-r from-rosegold-dark via-rosegold-mid to-rosegold-light text-obsidian text-xs sm:text-sm font-extrabold tracking-wide flex items-center space-x-2.5 shadow-rose-glow hover:shadow-[0_0_35px_rgba(242,203,190,0.5)] transition-all duration-300 group cursor-pointer"
+            >
+              <MessageSquareHeart className="w-4 h-4 text-obsidian group-hover:scale-110 transition-transform" />
+              <span>Abrir La Pregunta Final</span>
+            </button>
+          </motion.div>
+        )}
 
       </main>
 

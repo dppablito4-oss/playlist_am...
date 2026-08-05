@@ -41,7 +41,7 @@ const stateConfig = {
   },
 };
 
-export default function StateBannerNote({ state, note, onResetQuestion }) {
+export default function StateBannerNote({ state, note }) {
   if (!note || !stateConfig[state]) return null;
 
   const cfg = stateConfig[state];
@@ -51,7 +51,7 @@ export default function StateBannerNote({ state, note, onResetQuestion }) {
       initial={{ opacity: 0, y: -20, scale: 0.95 }}
       animate={{ opacity: 1, y: 0, scale: 1 }}
       transition={{ duration: 0.7, ease: 'easeOut' }}
-      className={`relative w-full max-w-3xl mx-auto px-4 mb-4 z-20`}
+      className={`relative w-full max-w-3xl mx-auto px-4 mb-6 z-20`}
     >
       <div
         className={`rounded-2xl p-5 sm:p-6 border ${cfg.borderColor} bg-gradient-to-br ${cfg.bgGradient} backdrop-blur-md ${cfg.glowShadow} overflow-hidden`}
@@ -83,16 +83,6 @@ export default function StateBannerNote({ state, note, onResetQuestion }) {
         <p className={`text-xs sm:text-sm ${cfg.signatureColor} font-semibold text-right`}>
           {note.signature}
         </p>
-
-        {/* Divider & Reset */}
-        <div className="mt-4 pt-3 border-t border-white/10 flex justify-center">
-          <button
-            onClick={onResetQuestion}
-            className="text-[10px] sm:text-xs text-white/40 hover:text-white/70 uppercase tracking-widest transition-colors"
-          >
-            Volver a ver la Pregunta
-          </button>
-        </div>
       </div>
     </motion.div>
   );

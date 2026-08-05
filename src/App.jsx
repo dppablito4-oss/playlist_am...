@@ -12,6 +12,7 @@ import TheQuestionModal from './components/TheQuestionModal';
 import StateBannerNote from './components/StateBannerNote';
 import GraceTimerBanner from './components/GraceTimerBanner';
 import InfiniteGratitudeLoop from './components/InfiniteGratitudeLoop';
+import TataCard from './components/TataCard';
 import { getLikesState, incrementLike, getGlobalWebState, updateGlobalWebState } from './lib/supabase';
 import { PLAYLISTS } from './lib/playlistData';
 
@@ -93,7 +94,6 @@ export default function App() {
       setSecondsLeft((prev) => {
         if (prev <= 1) {
           clearInterval(interval);
-          // Silencio de 2 segundos antes del fade final
           if (audioRef.current) audioRef.current.pause();
           setIsPlaying(false);
           setTimeout(() => {
@@ -202,9 +202,6 @@ export default function App() {
   const handleSkipNext = () => {
     const i = playlist.findIndex(t => t.id === currentTrack?.id);
     
-    // Si estamos en el estado NO y es la última canción de la playlist:
-    // 1. Silencio de 2 segundos
-    // 2. Transición suave Fade al mensaje final de gratitud
     if (currentState === 'NO' && i === playlist.length - 1) {
       if (audioRef.current) audioRef.current.pause();
       setIsPlaying(false);
@@ -282,14 +279,19 @@ export default function App() {
           />
         </div>
 
-        {/* 4. Dedicatoria Escrita Simple (SOLO en estado INICIAL) */}
+        {/* 4. Tarjeta especial de Tata al elegir SÍ (al hacer scroll bajo la playlist) */}
+        {currentState === 'YES' && (
+          <TataCard />
+        )}
+
+        {/* 5. Dedicatoria Escrita Simple (SOLO en estado INICIAL) */}
         {isInitial && (
           <div className="w-full mt-12">
             <SimpleDedicatedLetter />
           </div>
         )}
 
-        {/* 5. Botón "Abrir La Pregunta Final" al pie de la dedicatoria (SOLO en estado INICIAL) */}
+        {/* 6. Botón "Abrir La Pregunta Final" al pie de la dedicatoria (SOLO en estado INICIAL) */}
         {isInitial && (
           <motion.div
             initial={{ opacity: 0, scale: 0.9 }}

@@ -163,7 +163,7 @@ export default function App() {
   const handleSkipNext = () => {
     const i = playlist.findIndex(t => t.id === currentTrack?.id);
     
-    // Si estamos en el estado NO y es la última canción de la playlist, al terminar se cierra la web (EXPIRED)
+    // Si estamos en el estado NO y es la última canción de la playlist, al terminar pasa al bucle infinito
     if (currentState === 'NO' && i === playlist.length - 1) {
       setCurrentState('EXPIRED');
       if (audioRef.current) audioRef.current.pause();
@@ -197,6 +197,8 @@ export default function App() {
   // ─── EXPIRED: Infinite Gratitude Loop ──────────────────
   if (currentState === 'EXPIRED') return <InfiniteGratitudeLoop />;
 
+  const isInitial = currentState === 'INITIAL';
+
   // ─── Render ────────────────────────────────────────────
   return (
     <div className="min-h-screen relative overflow-hidden bg-obsidian text-rosegold selection:bg-rosegold-dark selection:text-white flex flex-col pb-36">
@@ -204,20 +206,26 @@ export default function App() {
       <GeometricCornerHearts />
 
       <main className="relative z-10 flex-1 flex flex-col items-center">
-        {/* 1. Portada Hero Estilo Apple */}
-        <Header playlistTitle={currentState !== 'INITIAL' ? activePlaylist.title : null} />
-
-        {/* 2. Mensaje de Despedida o Nota de Estado (si aplica) */}
-        {currentState === 'NO' && <GraceTimerBanner />}
-
-        {currentState !== 'INITIAL' && activePlaylist.note && (
-          <StateBannerNote
-            state={currentState}
-            note={activePlaylist.note}
-          />
+        
+        {/* 1. Portada Hero Estilo Apple SOLO en estado INICIAL */}
+        {isInitial && (
+          <Header playlistTitle={null} />
         )}
 
-        {/* 3. MÚSICA DE UNA: Playlist Section Directa */}
+        {/* 2. Banner de Estado y Nota (únicamente al contestar una opción) */}
+        {!isInitial && (
+          <div className="w-full pt-6">
+            {currentState === 'NO' && <GraceTimerBanner />}
+            {activePlaylist.note && (
+              <StateBannerNote
+                state={currentState}
+                note={activePlaylist.note}
+              />
+            )}
+          </div>
+        )}
+
+        {/* 3. Playlist Section */}
         <div className="w-full">
           <HeartMeshPlaylist
             playlist={playlist}
@@ -230,13 +238,15 @@ export default function App() {
           />
         </div>
 
-        {/* 4. DEDICATORIA AL FINAL: Escrito simple */}
-        <div className="w-full mt-12">
-          <SimpleDedicatedLetter />
-        </div>
+        {/* 4. Dedicatoria Escrita Simple (SOLO en estado INICIAL) */}
+        {isInitial && (
+          <div className="w-full mt-12">
+            <SimpleDedicatedLetter />
+          </div>
+        )}
 
-        {/* 5. Botón "Abrir La Pregunta Final" al pie de la dedicatoria (solo si está en INITIAL o SÍ/TIEMPO/MAYBE) */}
-        {currentState !== 'NO' && (
+        {/* 5. Botón "Abrir La Pregunta Final" al pie de la dedicatoria (SOLO en estado INICIAL) */}
+        {isInitial && (
           <motion.div
             initial={{ opacity: 0, scale: 0.9 }}
             whileInView={{ opacity: 1, scale: 1 }}

@@ -7,9 +7,9 @@ export default function GraceTimerBanner() {
     <motion.div
       initial={{ opacity: 0, y: -15 }}
       animate={{ opacity: 1, y: 0 }}
-      className="w-full max-w-3xl mx-auto px-4 mb-4 z-20"
+      className="w-full max-w-3xl mx-auto px-4 mt-8 mb-2 z-20"
     >
-      <div className="rounded-2xl p-4 bg-obsidian-card/80 border border-rosegold-deep/30 backdrop-blur-md shadow-burgundy-glow flex flex-col sm:flex-row items-center justify-between gap-3 text-center sm:text-left">
+      <div className="rounded-2xl p-4 bg-obsidian-card/90 border border-rosegold-deep/30 backdrop-blur-md shadow-burgundy-glow flex flex-col sm:flex-row items-center justify-between gap-3 text-center sm:text-left">
         
         {/* Left: Human Farewell Notice */}
         <div className="flex items-center space-x-3">

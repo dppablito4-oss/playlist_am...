@@ -1,6 +1,6 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { Heart, Clock, Compass, ShieldAlert, Sparkles } from 'lucide-react';
+import { Heart, Clock, Compass, Sparkles } from 'lucide-react';
 
 const stateConfig = {
   YES: {
@@ -31,13 +31,13 @@ const stateConfig = {
     glowShadow: 'shadow-[0_0_25px_rgba(251,191,36,0.2)]',
   },
   NO: {
-    icon: <ShieldAlert className="w-5 h-5 text-rose-400" />,
-    borderColor: 'border-rose-400/40',
-    bgGradient: 'from-rose-950/70 via-rose-900/50 to-red-950/60',
-    headingColor: 'text-rose-300',
-    bodyColor: 'text-rose-200/90',
-    signatureColor: 'text-rose-400/80',
-    glowShadow: 'shadow-[0_0_25px_rgba(244,63,94,0.2)]',
+    icon: <Sparkles className="w-5 h-5 text-rosegold-mid" />,
+    borderColor: 'border-rosegold-deep/40',
+    bgGradient: 'from-obsidian-card via-obsidian-deep to-obsidian-card',
+    headingColor: 'text-rosegold-light',
+    bodyColor: 'text-rosegold-light/90',
+    signatureColor: 'text-rosegold-mid',
+    glowShadow: 'shadow-burgundy-glow',
   },
 };
 
@@ -51,24 +51,24 @@ export default function StateBannerNote({ state, note }) {
       initial={{ opacity: 0, y: -20, scale: 0.95 }}
       animate={{ opacity: 1, y: 0, scale: 1 }}
       transition={{ duration: 0.7, ease: 'easeOut' }}
-      className={`relative w-full max-w-3xl mx-auto px-4 mb-6 z-20`}
+      className={`relative w-full max-w-3xl mx-auto px-4 mt-8 mb-4 z-20`}
     >
       <div
         className={`rounded-2xl p-5 sm:p-6 border ${cfg.borderColor} bg-gradient-to-br ${cfg.bgGradient} backdrop-blur-md ${cfg.glowShadow} overflow-hidden`}
       >
         {/* Sparkles accent */}
         <div className="absolute top-3 right-3 opacity-30">
-          <Sparkles className="w-12 h-12 text-white/20" />
+          <Sparkles className="w-12 h-12 text-rosegold-light/20" />
         </div>
 
         {/* Header */}
         <div className="flex items-center space-x-3 mb-3">
-          <div className={`w-9 h-9 rounded-full bg-black/30 border ${cfg.borderColor} flex items-center justify-center`}>
+          <div className={`w-9 h-9 rounded-full bg-obsidian/50 border ${cfg.borderColor} flex items-center justify-center`}>
             {cfg.icon}
           </div>
           <div>
             <h3 className={`text-sm sm:text-base font-bold ${cfg.headingColor} flex items-center gap-2`}>
-              <span>{note.emoji}</span>
+              {note.emoji && <span>{note.emoji}</span>}
               <span>{note.heading}</span>
             </h3>
           </div>

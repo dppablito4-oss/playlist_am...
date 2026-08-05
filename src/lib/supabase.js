@@ -1,10 +1,10 @@
 import { createClient } from '@supabase/supabase-js';
 
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || '';
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || '';
+const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY || import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY || '';
 
-export const supabase = (supabaseUrl && supabaseAnonKey) 
-  ? createClient(supabaseUrl, supabaseAnonKey)
+export const supabase = (supabaseUrl && supabaseKey) 
+  ? createClient(supabaseUrl, supabaseKey)
   : null;
 
 // ==========================================================
@@ -100,8 +100,8 @@ export const getLoveNotes = async () => {
   if (local) return JSON.parse(local);
 
   const initialNotes = [
-    { id: 1, sender: 'Pablito', content: 'Cada canción de esta lista me recuerda a un momento mágico contigo, Saly.', created_at: new Date().toISOString() },
-    { id: 2, sender: 'S&S', content: 'Nuestra música siempre nos conectará sin importar el camino. Te quiero.', created_at: new Date().toISOString() }
+    { id: 1, sender: 'Samuel', content: 'Cada canción de esta lista me recuerda a un momento mágico contigo, Saly.', created_at: new Date().toISOString() },
+    { id: 2, sender: 'S&S', content: 'Nuestra música siempre nos conectará sin importar el camino.', created_at: new Date().toISOString() }
   ];
   localStorage.setItem('saly_love_notes', JSON.stringify(initialNotes));
   return initialNotes;

@@ -6,17 +6,17 @@ export default function Header({ playlistTitle }) {
   return (
     <header className="relative z-20 min-h-[75vh] sm:min-h-[85vh] w-full flex flex-col items-center justify-between px-6 py-12 text-center select-none">
       
-      {/* Top Spacer / Subtle Branding */}
+      {/* Top Branding — Visible & Clear */}
       <motion.div
         initial={{ opacity: 0, y: -10 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 1 }}
         className="pt-4"
       >
-        <span className="text-[11px] uppercase tracking-[0.35em] text-rosegold-deep/70 font-medium flex items-center gap-2 justify-center">
-          <Sparkles className="w-3 h-3 text-rosegold-mid/60 animate-pulse" />
-          Tu Playlist, Saly.
-          <Sparkles className="w-3 h-3 text-rosegold-mid/60 animate-pulse" />
+        <span className="text-xs sm:text-sm uppercase tracking-[0.35em] text-rosegold-light/90 font-semibold flex items-center gap-2 justify-center">
+          <Sparkles className="w-3.5 h-3.5 text-rosegold-mid animate-pulse" />
+          TU PLAYLIST, SALY.
+          <Sparkles className="w-3.5 h-3.5 text-rosegold-mid animate-pulse" />
         </span>
       </motion.div>
 
@@ -81,7 +81,7 @@ export default function Header({ playlistTitle }) {
         transition={{ duration: 1, delay: 1.1 }}
         className="pb-4 flex flex-col items-center space-y-2 cursor-pointer group"
         onClick={() => {
-          window.scrollTo({ top: window.innerHeight * 0.7, behavior: 'smooth' });
+          window.scrollTo({ top: window.innerHeight * 0.75, behavior: 'smooth' });
         }}
       >
         <span className="text-xs tracking-[0.2em] uppercase text-rosegold-deep/80 group-hover:text-rosegold-light transition-colors font-light">

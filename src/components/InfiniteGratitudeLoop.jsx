@@ -1,99 +1,66 @@
-import React, { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { Sparkles } from 'lucide-react';
+import React from 'react';
+import { motion } from 'framer-motion';
 import BackgroundCanvas from './BackgroundCanvas';
 
-const MESSAGES = [
-  {
-    quote: "Gracias por haber sido parte de mi historia.",
-    subtext: ""
-  },
-  {
-    quote: "Te deseo paz, luz y felicidad en cada paso de tu camino.",
-    subtext: ""
-  },
-  {
-    quote: "Adiós, Saly. Cuídate siempre.",
-    subtext: "— Samuel"
-  }
-];
-
 export default function InfiniteGratitudeLoop() {
-  const [index, setIndex] = useState(0);
-
-  useEffect(() => {
-    const timer = setInterval(() => {
-      setIndex((prev) => (prev + 1) % MESSAGES.length);
-    }, 7000);
-    return () => clearInterval(timer);
-  }, []);
-
-  const current = MESSAGES[index];
-
   return (
-    <div className="fixed inset-0 z-50 bg-obsidian-deep text-rosegold selection:bg-none flex flex-col items-center justify-center overflow-hidden">
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 1.8, ease: "easeInOut" }}
+      className="fixed inset-0 z-50 bg-obsidian-deep text-rosegold selection:bg-none flex flex-col items-center justify-center overflow-hidden"
+    >
       {/* Tenue Starfield Canvas */}
       <BackgroundCanvas />
 
+      {/* Deep Subtle Glow */}
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-rosegold-deep/10 rounded-full blur-3xl pointer-events-none" />
+
       {/* Content Container */}
-      <div className="relative z-10 max-w-md mx-auto flex flex-col items-center text-center px-6">
+      <div className="relative z-10 max-w-lg mx-auto flex flex-col items-center text-center px-6">
         
-        {/* Monogram — Small & Muted */}
+        {/* Monogram S & S — Muted */}
         <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 2.5 }}
-          className="mb-16"
+          initial={{ opacity: 0, scale: 0.9 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 2, delay: 0.3 }}
+          className="mb-12"
         >
           <div className="flex items-center justify-center space-x-2">
-            <span className="font-serif text-4xl font-bold tracking-tight text-monogram-gradient opacity-60">
+            <span className="font-serif text-4xl sm:text-5xl font-bold tracking-tight text-monogram-gradient opacity-60">
               S
             </span>
-            <span className="font-serif text-2xl font-light text-rosegold-mid opacity-40 italic">
+            <span className="font-serif text-2xl sm:text-3xl font-light text-rosegold-mid opacity-40 italic">
               &
             </span>
-            <span className="font-serif text-4xl font-bold tracking-tight text-monogram-gradient opacity-60">
+            <span className="font-serif text-4xl sm:text-5xl font-bold tracking-tight text-monogram-gradient opacity-60">
               S
             </span>
           </div>
+          <div className="h-[1px] bg-gradient-to-r from-transparent via-rosegold-deep/30 to-transparent mt-2 w-full" />
         </motion.div>
 
-        {/* Central Rotating Message — Clean and Spacious */}
-        <div className="min-h-[120px] flex flex-col items-center justify-center">
-          <AnimatePresence mode="wait">
-            <motion.div
-              key={index}
-              initial={{ opacity: 0, y: 12 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -12 }}
-              transition={{ duration: 1.2 }}
-              className="space-y-5"
-            >
-              <p className="font-serif text-xl sm:text-2xl text-rosegold-light/85 text-glow-rosegold leading-relaxed font-normal">
-                {current.quote}
-              </p>
-              {current.subtext && (
-                <p className="text-sm text-rosegold-deep/70 font-medium tracking-wider">
-                  {current.subtext}
-                </p>
-              )}
-            </motion.div>
-          </AnimatePresence>
-        </div>
+        {/* Central Final Message */}
+        <motion.div
+          initial={{ opacity: 0, y: 15 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 1.6, delay: 0.6 }}
+          className="space-y-4"
+        >
+          <h2 className="font-serif text-2xl sm:text-3xl text-rosegold-light text-glow-rosegold font-medium leading-relaxed">
+            Gracias por haber sido parte de mi historia.
+          </h2>
 
-        {/* Dots Indicator — Minimal */}
-        <div className="mt-16 flex items-center space-x-2">
-          {MESSAGES.map((_, i) => (
-            <div
-              key={i}
-              className={`rounded-full transition-all duration-700 ${
-                i === index ? 'w-5 h-1.5 bg-rosegold-mid/60' : 'w-1.5 h-1.5 bg-rosegold-dark/30'
-              }`}
-            />
-          ))}
-        </div>
+          <p className="text-sm sm:text-base text-rosegold-light/75 font-light tracking-wide italic">
+            Te deseo paz, salud y felicidad en tu camino.
+          </p>
+
+          <p className="pt-6 font-serif text-lg text-rosegold-mid font-semibold tracking-wider">
+            — Samuel
+          </p>
+        </motion.div>
 
       </div>
-    </div>
+    </motion.div>
   );
 }

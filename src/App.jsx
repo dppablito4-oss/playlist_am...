@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import BackgroundCanvas from './components/BackgroundCanvas';
 import GeometricCornerHearts from './components/GeometricCornerHearts';
 import Header from './components/Header';
+import NavigationMenu from './components/NavigationMenu';
 import HeartMeshPlaylist from './components/HeartMeshPlaylist';
 import FloatingPlayer from './components/FloatingPlayer';
 import LoveLetterModal from './components/LoveLetterModal';
@@ -12,15 +13,13 @@ import InfiniteGratitudeLoop from './components/InfiniteGratitudeLoop';
 import { getLikesState, incrementLike, getGlobalWebState, updateGlobalWebState } from './lib/supabase';
 import { PLAYLISTS } from './lib/playlistData';
 
-const GRACE_PERIOD_SECONDS = 600; // 10 Minutos
+const GRACE_PERIOD_SECONDS = 600; // 10 Minutes
 
 export default function App() {
   // ─── State Machine ──────────────────────────────────────
-  // 'INITIAL' | 'YES' | 'TIME' | 'MAYBE' | 'NO' | 'EXPIRED'
   const [currentState, setCurrentState] = useState('INITIAL');
   const [secondsLeft, setSecondsLeft] = useState(GRACE_PERIOD_SECONDS);
 
-  // Active playlist data derived from state
   const activePlaylist = PLAYLISTS[currentState] || PLAYLISTS.INITIAL;
   const playlist = activePlaylist.tracks;
 
@@ -32,7 +31,7 @@ export default function App() {
   const [volume, setVolume] = useState(0.85);
   const [isLooping, setIsLooping] = useState(false);
 
-  // ─── Likes & Modals ─────────────────────────────────────
+  // ─── UI State ───────────────────────────────────────────
   const [likesMap, setLikesMap] = useState({});
   const [isLoveLetterOpen, setIsLoveLetterOpen] = useState(false);
   const [isQuestionOpen, setIsQuestionOpen] = useState(false);
@@ -41,6 +40,7 @@ export default function App() {
   const audioRef = useRef(null);
   const audioCtxRef = useRef(null);
   const synthTimerRef = useRef(null);
+  const playlistRef = useRef(null);
 
   // ─── 1. Load Initial Web State & Likes ──────────────────
   useEffect(() => {
@@ -50,21 +50,16 @@ export default function App() {
       const { respuesta, fecha_respuesta } = stateData;
 
       if (respuesta === 'NO' && fecha_respuesta) {
-        const respTime = new Date(fecha_respuesta).getTime();
-        const now = new Date().getTime();
-        const elapsedSeconds = Math.floor((now - respTime) / 1000);
-
-        if (elapsedSeconds >= GRACE_PERIOD_SECONDS) {
+        const elapsed = Math.floor((Date.now() - new Date(fecha_respuesta).getTime()) / 1000);
+        if (elapsed >= GRACE_PERIOD_SECONDS) {
           setCurrentState('EXPIRED');
         } else {
           setCurrentState('NO');
-          setSecondsLeft(GRACE_PERIOD_SECONDS - elapsedSeconds);
+          setSecondsLeft(GRACE_PERIOD_SECONDS - elapsed);
         }
       } else if (['YES', 'TIME', 'MAYBE'].includes(respuesta)) {
         setCurrentState(respuesta);
-        if (PLAYLISTS[respuesta]) {
-          setCurrentTrack(PLAYLISTS[respuesta].tracks[0]);
-        }
+        if (PLAYLISTS[respuesta]) setCurrentTrack(PLAYLISTS[respuesta].tracks[0]);
       }
     });
 
@@ -88,10 +83,9 @@ export default function App() {
     };
   }, []);
 
-  // ─── 2. Grace Timer Interval for 'NO' State ────────────
+  // ─── 2. Grace Timer for 'NO' ────────────────────────────
   useEffect(() => {
     if (currentState !== 'NO') return;
-
     const interval = setInterval(() => {
       setSecondsLeft((prev) => {
         if (prev <= 1) {
@@ -104,23 +98,17 @@ export default function App() {
         return prev - 1;
       });
     }, 1000);
-
     return () => clearInterval(interval);
   }, [currentState]);
 
-  // ─── 3. State Transition on Decision ─────────────────────
+  // ─── 3. State Transition ─────────────────────────────────
   const handleSelectDecision = async (decision) => {
     setCurrentState(decision);
     stopSynthMelodyLoop();
-
-    // Actualizar globalmente en Supabase y localStorage
     await updateGlobalWebState(decision);
 
-    if (decision === 'NO') {
-      setSecondsLeft(GRACE_PERIOD_SECONDS);
-    }
+    if (decision === 'NO') setSecondsLeft(GRACE_PERIOD_SECONDS);
 
-    // Switch to the new playlist's first track and auto-play
     const newPlaylist = PLAYLISTS[decision] || PLAYLISTS.INITIAL;
     const firstTrack = newPlaylist.tracks[0];
     setCurrentTrack(firstTrack);
@@ -131,18 +119,21 @@ export default function App() {
       const audio = audioRef.current;
       if (audio && firstTrack?.audioUrl) {
         audio.src = firstTrack.audioUrl;
-        audio.play().then(() => {
-          setIsPlaying(true);
-        }).catch(() => {
-          setIsPlaying(true);
-          startSynthMelodyLoop();
-        });
+        audio.play().then(() => setIsPlaying(true))
+          .catch(() => { setIsPlaying(true); startSynthMelodyLoop(); });
       }
     }, 200);
   };
 
-  const handleResetQuestion = () => {
-    setIsQuestionOpen(true);
+  // ─── Navigation Menu Handler ────────────────────────────
+  const handleNavSelect = (key) => {
+    if (key === 'carta') {
+      setIsLoveLetterOpen(true);
+    } else if (key === 'canciones') {
+      playlistRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    } else if (key === 'pregunta') {
+      setIsQuestionOpen(true);
+    }
   };
 
   // ─── Web Audio Synth Fallback ───────────────────────────
@@ -153,20 +144,15 @@ export default function App() {
       }
       const ctx = audioCtxRef.current;
       if (ctx.state === 'suspended') ctx.resume();
-
       const osc = ctx.createOscillator();
       const gain = ctx.createGain();
-
       osc.type = 'sine';
       osc.frequency.setValueAtTime(freq, ctx.currentTime);
-
       gain.gain.setValueAtTime(0.01, ctx.currentTime);
       gain.gain.exponentialRampToValueAtTime(0.15, ctx.currentTime + 0.1);
       gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 1.8);
-
       osc.connect(gain);
       gain.connect(ctx.destination);
-
       osc.start();
       osc.stop(ctx.currentTime + 1.8);
     } catch (e) {
@@ -178,7 +164,6 @@ export default function App() {
     if (synthTimerRef.current) clearInterval(synthTimerRef.current);
     const notes = [261.63, 329.63, 392.00, 523.25, 440.00, 349.23];
     let noteIdx = 0;
-
     synthTimerRef.current = setInterval(() => {
       playRomanticSynthesizer(notes[noteIdx % notes.length]);
       noteIdx++;
@@ -187,133 +172,100 @@ export default function App() {
   };
 
   const stopSynthMelodyLoop = () => {
-    if (synthTimerRef.current) {
-      clearInterval(synthTimerRef.current);
-      synthTimerRef.current = null;
-    }
+    if (synthTimerRef.current) { clearInterval(synthTimerRef.current); synthTimerRef.current = null; }
   };
 
   // ─── Play / Pause ──────────────────────────────────────
   const handleTogglePlay = () => {
     const audio = audioRef.current;
     if (!audio) return;
-
     if (isPlaying) {
-      audio.pause();
-      stopSynthMelodyLoop();
-      setIsPlaying(false);
+      audio.pause(); stopSynthMelodyLoop(); setIsPlaying(false);
     } else {
       if (currentTrack?.audioUrl) {
-        if (audio.src !== window.location.origin + currentTrack.audioUrl) {
-          audio.src = currentTrack.audioUrl;
-        }
-        audio.play().then(() => {
-          setIsPlaying(true);
-        }).catch(() => {
-          setIsPlaying(true);
-          startSynthMelodyLoop();
-        });
-      } else {
-        setIsPlaying(true);
-        startSynthMelodyLoop();
-      }
+        if (audio.src !== window.location.origin + currentTrack.audioUrl) audio.src = currentTrack.audioUrl;
+        audio.play().then(() => setIsPlaying(true))
+          .catch(() => { setIsPlaying(true); startSynthMelodyLoop(); });
+      } else { setIsPlaying(true); startSynthMelodyLoop(); }
     }
   };
 
   // ─── Select Track ──────────────────────────────────────
   const handleSelectTrack = (track) => {
     const audio = audioRef.current;
-    setCurrentTrack(track);
-    setCurrentTime(0);
-    stopSynthMelodyLoop();
-
+    setCurrentTrack(track); setCurrentTime(0); stopSynthMelodyLoop();
     if (audio) {
       audio.src = track.audioUrl;
-      audio.play().then(() => {
-        setIsPlaying(true);
-      }).catch(() => {
-        setIsPlaying(true);
-        startSynthMelodyLoop();
-      });
+      audio.play().then(() => setIsPlaying(true))
+        .catch(() => { setIsPlaying(true); startSynthMelodyLoop(); });
     }
   };
 
-  // ─── Skip Next / Previous ─────────────────────────────
   const handleSkipNext = () => {
-    const currentIndex = playlist.findIndex(t => t.id === currentTrack?.id);
-    const nextIndex = (currentIndex + 1) % playlist.length;
-    handleSelectTrack(playlist[nextIndex]);
+    const i = playlist.findIndex(t => t.id === currentTrack?.id);
+    handleSelectTrack(playlist[(i + 1) % playlist.length]);
   };
 
   const handleSkipPrevious = () => {
-    const currentIndex = playlist.findIndex(t => t.id === currentTrack?.id);
-    const prevIndex = (currentIndex - 1 + playlist.length) % playlist.length;
-    handleSelectTrack(playlist[prevIndex]);
+    const i = playlist.findIndex(t => t.id === currentTrack?.id);
+    handleSelectTrack(playlist[(i - 1 + playlist.length) % playlist.length]);
   };
 
-  // ─── Seek ──────────────────────────────────────────────
-  const handleSeek = (newTime) => {
-    setCurrentTime(newTime);
-    if (audioRef.current && !isNaN(newTime)) {
-      try { audioRef.current.currentTime = newTime; } catch (e) { /* fallback */ }
-    }
+  const handleSeek = (t) => {
+    setCurrentTime(t);
+    if (audioRef.current && !isNaN(t)) { try { audioRef.current.currentTime = t; } catch (e) {} }
   };
 
-  // ─── Volume ────────────────────────────────────────────
-  const handleChangeVolume = (newVol) => {
-    setVolume(newVol);
-    if (audioRef.current) audioRef.current.volume = newVol;
+  const handleChangeVolume = (v) => {
+    setVolume(v);
+    if (audioRef.current) audioRef.current.volume = v;
   };
 
-  // ─── Like Track ────────────────────────────────────────
   const handleLikeTrack = async (songId) => {
-    const newCount = await incrementLike(songId);
-    setLikesMap(prev => ({ ...prev, [songId]: newCount }));
+    const c = await incrementLike(songId);
+    setLikesMap(prev => ({ ...prev, [songId]: c }));
   };
 
-  // ─── 4. IF EXPIRED: Render Infinite Gratitude Loop ────
-  if (currentState === 'EXPIRED') {
-    return <InfiniteGratitudeLoop />;
-  }
+  // ─── EXPIRED: Infinite Gratitude Loop ──────────────────
+  if (currentState === 'EXPIRED') return <InfiniteGratitudeLoop />;
 
+  // ─── Render ────────────────────────────────────────────
   return (
-    <div className="min-h-screen relative overflow-hidden bg-obsidian text-rosegold selection:bg-rosegold-dark selection:text-white flex flex-col justify-between pb-32">
+    <div className="min-h-screen relative overflow-hidden bg-obsidian text-rosegold selection:bg-rosegold-dark selection:text-white flex flex-col pb-32">
       <BackgroundCanvas />
       <GeometricCornerHearts />
 
       <main className="relative z-10 flex-1 flex flex-col items-center">
-        {/* Header: Monogram + Buttons */}
-        <Header
-          onOpenLoveLetter={() => setIsLoveLetterOpen(true)}
-          onOpenQuestion={() => setIsQuestionOpen(true)}
-          currentState={currentState}
-          playlistTitle={activePlaylist.title}
-        />
+        {/* Hero Portada — Apple Style Spacious */}
+        <Header playlistTitle={currentState !== 'INITIAL' ? activePlaylist.title : null} />
 
-        {/* Grace Timer Banner (Only if state is 'NO') */}
-        {currentState === 'NO' && (
-          <GraceTimerBanner secondsLeft={secondsLeft} />
-        )}
+        {/* Navigation Menu — Spotify Premium Style */}
+        <NavigationMenu onSelect={handleNavSelect} />
 
-        {/* State Banner Note (only after a decision) */}
+        {/* Grace Timer Banner (NO state) */}
+        {currentState === 'NO' && <GraceTimerBanner secondsLeft={secondsLeft} />}
+
+        {/* State Banner Note */}
         {currentState !== 'INITIAL' && activePlaylist.note && (
           <StateBannerNote
             state={currentState}
             note={activePlaylist.note}
-            onResetQuestion={handleResetQuestion}
+            onResetQuestion={() => setIsQuestionOpen(true)}
           />
         )}
 
-        {/* Heart Mesh Tracklist */}
-        <HeartMeshPlaylist
-          playlist={playlist}
-          currentTrack={currentTrack}
-          isPlaying={isPlaying}
-          onSelectTrack={handleSelectTrack}
-          onTogglePlay={handleTogglePlay}
-          likesMap={likesMap}
-          onLikeTrack={handleLikeTrack}
-        />
+        {/* Playlist Section */}
+        <div ref={playlistRef}>
+          <HeartMeshPlaylist
+            playlist={playlist}
+            currentTrack={currentTrack}
+            isPlaying={isPlaying}
+            onSelectTrack={handleSelectTrack}
+            onTogglePlay={handleTogglePlay}
+            likesMap={likesMap}
+            onLikeTrack={handleLikeTrack}
+          />
+        </div>
       </main>
 
       {/* Bottom Player */}
@@ -332,18 +284,8 @@ export default function App() {
         onChangeVolume={handleChangeVolume}
       />
 
-      {/* Love Letter Modal */}
-      <LoveLetterModal
-        isOpen={isLoveLetterOpen}
-        onClose={() => setIsLoveLetterOpen(false)}
-      />
-
-      {/* The Question Modal */}
-      <TheQuestionModal
-        isOpen={isQuestionOpen}
-        onClose={() => setIsQuestionOpen(false)}
-        onSelectDecision={handleSelectDecision}
-      />
+      <LoveLetterModal isOpen={isLoveLetterOpen} onClose={() => setIsLoveLetterOpen(false)} />
+      <TheQuestionModal isOpen={isQuestionOpen} onClose={() => setIsQuestionOpen(false)} onSelectDecision={handleSelectDecision} />
     </div>
   );
 }

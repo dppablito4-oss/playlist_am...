@@ -1,111 +1,95 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { Heart, Sparkles, BookOpen, MessageSquareHeart } from 'lucide-react';
+import { ChevronDown, Sparkles } from 'lucide-react';
 
-export default function Header({ onOpenLoveLetter, onOpenQuestion, currentState, playlistTitle }) {
-  const isInitial = currentState === 'INITIAL';
-
+export default function Header({ playlistTitle }) {
   return (
-    <header className="relative z-20 pt-8 pb-4 px-4 text-center flex flex-col items-center justify-center">
-      {/* Glow aura behind monogram */}
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-64 h-64 bg-rosegold-deep/20 rounded-full blur-3xl pointer-events-none" />
-
-      {/* Monogram S&S Container */}
+    <header className="relative z-20 min-h-[75vh] sm:min-h-[85vh] w-full flex flex-col items-center justify-between px-6 py-12 text-center select-none">
+      
+      {/* Top Spacer / Subtle Branding */}
       <motion.div
-        initial={{ opacity: 0, y: -20, scale: 0.9 }}
-        animate={{ opacity: 1, y: 0, scale: 1 }}
-        transition={{ duration: 1.2, ease: "easeOut" }}
-        className="relative group cursor-pointer inline-block"
+        initial={{ opacity: 0, y: -10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 1 }}
+        className="pt-4"
       >
-        <div className="relative z-10 flex items-center justify-center space-x-1">
-          <span className="font-serif text-6xl sm:text-8xl font-bold tracking-tight text-monogram-gradient text-glow-rosegold select-none">
-            S
-          </span>
-          <span className="font-serif text-4xl sm:text-6xl font-light text-rosegold-mid opacity-90 mx-1 select-none italic">
-            &
-          </span>
-          <span className="font-serif text-6xl sm:text-8xl font-bold tracking-tight text-monogram-gradient text-glow-rosegold select-none">
-            S
-          </span>
-        </div>
-
-        {/* Decorative thin metallic line below monogram */}
-        <motion.div 
-          initial={{ width: 0 }}
-          animate={{ width: "100%" }}
-          transition={{ duration: 1, delay: 0.8 }}
-          className="h-[1px] bg-gradient-to-r from-transparent via-rosegold-light/60 to-transparent mt-1"
-        />
+        <span className="text-[11px] uppercase tracking-[0.35em] text-rosegold-deep/70 font-medium flex items-center gap-2 justify-center">
+          <Sparkles className="w-3 h-3 text-rosegold-mid/60 animate-pulse" />
+          Tu Playlist, Saly.
+          <Sparkles className="w-3 h-3 text-rosegold-mid/60 animate-pulse" />
+        </span>
       </motion.div>
 
-      {/* Subtitle */}
+      {/* Central Hero Block — Apple Style Minimalist Breathing Room */}
+      <div className="my-auto flex flex-col items-center max-w-xl mx-auto space-y-8">
+        
+        {/* Glow Aura */}
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-80 h-80 bg-rosegold-deep/15 rounded-full blur-3xl pointer-events-none" />
+
+        {/* Monogram S & S */}
+        <motion.div
+          initial={{ opacity: 0, scale: 0.92 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 1.4, ease: "easeOut" }}
+          className="relative"
+        >
+          <div className="flex items-center justify-center space-x-2 sm:space-x-3">
+            <span className="font-serif text-7xl sm:text-9xl font-bold tracking-tight text-monogram-gradient text-glow-rosegold">
+              S
+            </span>
+            <span className="font-serif text-5xl sm:text-7xl font-light text-rosegold-mid opacity-80 italic mx-1">
+              &
+            </span>
+            <span className="font-serif text-7xl sm:text-9xl font-bold tracking-tight text-monogram-gradient text-glow-rosegold">
+              S
+            </span>
+          </div>
+
+          <div className="h-[1px] bg-gradient-to-r from-transparent via-rosegold-light/40 to-transparent mt-3 w-full" />
+        </motion.div>
+
+        {/* Central Quote with Spacious Typography */}
+        <motion.div
+          initial={{ opacity: 0, y: 15 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 1.2, delay: 0.5 }}
+          className="px-4"
+        >
+          <p className="font-serif text-xl sm:text-3xl text-rosegold-light/90 text-glow-rosegold font-normal leading-relaxed italic max-w-lg mx-auto">
+            "La música siempre dijo<br className="hidden sm:inline" /> lo que mis silencios callaron."
+          </p>
+        </motion.div>
+
+        {/* Playlist Badge if active */}
+        {playlistTitle && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.9 }}
+            className="px-4 py-1.5 rounded-full bg-obsidian-card/60 border border-rosegold-deep/20 text-[11px] text-rosegold-mid font-mono tracking-widest uppercase"
+          >
+            ♫ {playlistTitle}
+          </motion.div>
+        )}
+
+      </div>
+
+      {/* Bottom Scroll Indicator — Apple-like "↓ Desliza para comenzar" */}
       <motion.div
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.8, delay: 0.5 }}
-        className="mt-3 flex flex-col items-center"
+        transition={{ duration: 1, delay: 1.1 }}
+        className="pb-4 flex flex-col items-center space-y-2 cursor-pointer group"
+        onClick={() => {
+          window.scrollTo({ top: window.innerHeight * 0.7, behavior: 'smooth' });
+        }}
       >
-        <h1 className="font-serif text-2xl sm:text-3xl tracking-widest uppercase font-medium text-rosegold-light text-glow-rosegold">
-          Tu Playlist, Saly.
-        </h1>
-        
-        <p className="text-xs sm:text-sm text-rosegold-deep font-light mt-1 tracking-wider uppercase flex items-center gap-1.5">
-          <Sparkles className="w-3.5 h-3.5 text-rosegold-mid animate-pulse" />
-          <span>Edición Especial Rose Gold & Obsidian</span>
-          <Sparkles className="w-3.5 h-3.5 text-rosegold-mid animate-pulse" />
-        </p>
+        <span className="text-xs tracking-[0.2em] uppercase text-rosegold-deep/80 group-hover:text-rosegold-light transition-colors font-light">
+          ↓ Desliza para comenzar
+        </span>
+        <ChevronDown className="w-4 h-4 text-rosegold-mid animate-bounce opacity-70" />
       </motion.div>
 
-      {/* Initial State: Opening Phrase */}
-      {isInitial && (
-        <motion.p
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 1, delay: 1.2 }}
-          className="mt-5 font-serif italic text-rosegold-light/70 text-sm sm:text-base max-w-md leading-relaxed"
-        >
-          "La música siempre dijo lo que mis silencios callaron."
-        </motion.p>
-      )}
-
-      {/* Playlist Title Badge (shown in non-initial states) */}
-      {!isInitial && playlistTitle && (
-        <motion.div
-          initial={{ opacity: 0, scale: 0.9 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ duration: 0.6 }}
-          className="mt-3 px-4 py-1.5 rounded-full bg-obsidian-card/70 border border-rosegold-deep/30 text-xs text-rosegold-light font-medium tracking-wider uppercase"
-        >
-          ♫ {playlistTitle}
-        </motion.div>
-      )}
-
-      {/* Buttons Row */}
-      <motion.div
-        initial={{ opacity: 0, scale: 0.9 }}
-        animate={{ opacity: 1, scale: 1 }}
-        transition={{ duration: 0.6, delay: 0.9 }}
-        className="mt-4 flex flex-wrap items-center justify-center gap-3"
-      >
-        {/* Love Letter / Notes */}
-        <button
-          onClick={onOpenLoveLetter}
-          className="px-4 py-2 rounded-full glass-burgundy text-rosegold-light text-xs sm:text-sm font-medium tracking-wide flex items-center space-x-2 shadow-burgundy-glow border border-rosegold/30 hover:border-rosegold-light transition-all duration-300 group"
-        >
-          <Heart className="w-3.5 h-3.5 text-rosegold-mid group-hover:text-rosegold fill-rosegold-mid/30 animate-pulse" />
-          <span>Carta & Notas</span>
-          <BookOpen className="w-3.5 h-3.5 text-rosegold-light opacity-80" />
-        </button>
-
-        {/* The Question Button — highlighted to guide Saly */}
-        <button
-          onClick={onOpenQuestion}
-          className="px-5 py-2 rounded-full bg-gradient-to-r from-rosegold-dark via-rosegold-mid to-rosegold-light text-obsidian text-xs sm:text-sm font-bold tracking-wide flex items-center space-x-2 shadow-rose-glow hover:shadow-[0_0_35px_rgba(242,203,190,0.45)] transition-all duration-300 group"
-        >
-          <MessageSquareHeart className="w-4 h-4 text-obsidian group-hover:scale-110 transition-transform" />
-          <span>Abrir La Pregunta</span>
-        </button>
-      </motion.div>
     </header>
   );
 }

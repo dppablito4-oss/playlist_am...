@@ -16,8 +16,15 @@ export default function HeartMeshPlaylist({
       {/* Background SVG Heart Mesh Container */}
       <div className="relative rounded-3xl p-4 sm:p-8 glass-panel shadow-burgundy-glow border border-rosegold-deep/20 overflow-hidden">
         
-        {/* Heart Mathematical Waves Contour SVG (Background) */}
-        <div className="absolute inset-0 pointer-events-none opacity-20 flex items-center justify-center overflow-hidden">
+        {/* Heart Mathematical Waves Contour SVG (Background) — Heartbeat when playing */}
+        <div
+          className={`absolute inset-0 pointer-events-none flex items-center justify-center overflow-hidden transition-opacity duration-700 ${
+            isPlaying ? 'opacity-30' : 'opacity-15'
+          }`}
+          style={isPlaying ? {
+            animation: 'heartbeat 1.1s ease-in-out infinite',
+          } : undefined}
+        >
           <svg viewBox="0 0 500 500" className="w-[120%] h-[120%] stroke-rosegold-mid fill-none">
             {/* Mathematical heart parametric curves */}
             <path

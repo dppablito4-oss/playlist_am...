@@ -15,10 +15,13 @@ import InfiniteGratitudeLoop from './components/InfiniteGratitudeLoop';
 import { getLikesState, incrementLike, getGlobalWebState, updateGlobalWebState } from './lib/supabase';
 import { PLAYLISTS } from './lib/playlistData';
 
+const FAREWELL_TIMEOUT_SECONDS = 30; // 30 Segundos para el pase al mensaje final
+
 export default function App() {
   // ─── State Machine ──────────────────────────────────────
   // 'INITIAL' | 'YES' | 'TIME' | 'MAYBE' | 'NO' | 'EXPIRED'
   const [currentState, setCurrentState] = useState('INITIAL');
+  const [secondsLeft, setSecondsLeft] = useState(FAREWELL_TIMEOUT_SECONDS);
 
   const activePlaylist = PLAYLISTS[currentState] || PLAYLISTS.INITIAL;
   const playlist = activePlaylist.tracks;
@@ -46,8 +49,17 @@ export default function App() {
     getLikesState().then(setLikesMap);
 
     getGlobalWebState().then((stateData) => {
-      const { respuesta } = stateData;
-      if (['YES', 'TIME', 'MAYBE', 'NO'].includes(respuesta)) {
+      const { respuesta, fecha_respuesta } = stateData;
+
+      if (respuesta === 'NO' && fecha_respuesta) {
+        const elapsed = Math.floor((Date.now() - new Date(fecha_respuesta).getTime()) / 1000);
+        if (elapsed >= FAREWELL_TIMEOUT_SECONDS) {
+          setCurrentState('EXPIRED');
+        } else {
+          setCurrentState('NO');
+          setSecondsLeft(FAREWELL_TIMEOUT_SECONDS - elapsed);
+        }
+      } else if (['YES', 'TIME', 'MAYBE'].includes(respuesta)) {
         setCurrentState(respuesta);
         if (PLAYLISTS[respuesta]) setCurrentTrack(PLAYLISTS[respuesta].tracks[0]);
       }
@@ -73,11 +85,35 @@ export default function App() {
     };
   }, []);
 
-  // ─── 2. State Transition ─────────────────────────────────
+  // ─── 2. Timer de 30 Segundos para Estado 'NO' ─────────────
+  useEffect(() => {
+    if (currentState !== 'NO') return;
+
+    const interval = setInterval(() => {
+      setSecondsLeft((prev) => {
+        if (prev <= 1) {
+          clearInterval(interval);
+          setCurrentState('EXPIRED');
+          if (audioRef.current) audioRef.current.pause();
+          setIsPlaying(false);
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, [currentState]);
+
+  // ─── 3. State Transition ─────────────────────────────────
   const handleSelectDecision = async (decision) => {
     setCurrentState(decision);
     stopSynthMelodyLoop();
     await updateGlobalWebState(decision);
+
+    if (decision === 'NO') {
+      setSecondsLeft(FAREWELL_TIMEOUT_SECONDS);
+    }
 
     const newPlaylist = PLAYLISTS[decision] || PLAYLISTS.INITIAL;
     const firstTrack = newPlaylist.tracks[0];
@@ -162,15 +198,6 @@ export default function App() {
 
   const handleSkipNext = () => {
     const i = playlist.findIndex(t => t.id === currentTrack?.id);
-    
-    // Si estamos en el estado NO y es la última canción de la playlist, al terminar pasa al bucle infinito
-    if (currentState === 'NO' && i === playlist.length - 1) {
-      setCurrentState('EXPIRED');
-      if (audioRef.current) audioRef.current.pause();
-      setIsPlaying(false);
-      return;
-    }
-
     handleSelectTrack(playlist[(i + 1) % playlist.length]);
   };
 

@@ -7,7 +7,7 @@ export default function InfiniteGratitudeLoop() {
     <motion.div
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
-      transition={{ duration: 1.8, ease: "easeInOut" }}
+      transition={{ duration: 2, ease: "easeInOut" }}
       className="fixed inset-0 z-50 bg-obsidian-deep text-rosegold selection:bg-none flex flex-col items-center justify-center overflow-hidden"
     >
       {/* Tenue Starfield Canvas */}
@@ -19,20 +19,64 @@ export default function InfiniteGratitudeLoop() {
       {/* Content Container */}
       <div className="relative z-10 max-w-lg mx-auto flex flex-col items-center text-center px-6">
         
-        {/* Single Monogram S — Representing Quiet Solitude & Respectful Closure */}
-        <motion.div
-          initial={{ opacity: 0, scale: 0.9 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ duration: 2, delay: 0.3 }}
-          className="mb-12"
-        >
-          <div className="flex items-center justify-center">
-            <span className="font-serif text-5xl sm:text-6xl font-bold tracking-tight text-monogram-gradient opacity-60">
-              S
-            </span>
-          </div>
-          <div className="h-[1px] bg-gradient-to-r from-transparent via-rosegold-deep/30 to-transparent mt-2 w-16 mx-auto" />
-        </motion.div>
+        {/* Poetic Separating Monogram Loop (20 Seconds Cycle) */}
+        <div className="mb-14 relative h-20 flex items-center justify-center">
+          
+          {/* Left S — Moves gently to center as the rest separates */}
+          <motion.span
+            animate={{
+              x: [0, 0, 24, 24, 0],
+              opacity: [0.9, 0.9, 0.7, 0.7, 0.9]
+            }}
+            transition={{
+              duration: 20,
+              repeat: Infinity,
+              ease: "easeInOut"
+            }}
+            className="font-serif text-5xl sm:text-6xl font-bold tracking-tight text-monogram-gradient text-glow-rosegold inline-block"
+          >
+            S
+          </motion.span>
+
+          {/* Middle & — Slowly fades away */}
+          <motion.span
+            animate={{
+              opacity: [0.6, 0.6, 0, 0, 0.6],
+              scale: [1, 1, 0.7, 0.7, 1]
+            }}
+            transition={{
+              duration: 20,
+              repeat: Infinity,
+              ease: "easeInOut"
+            }}
+            className="font-serif text-3xl sm:text-4xl font-light text-rosegold-mid opacity-60 italic mx-3 inline-block"
+          >
+            &
+          </motion.span>
+
+          {/* Right S — Drifts to the right and slowly vanishes into memory */}
+          <motion.span
+            animate={{
+              x: [0, 10, 45, 45, 0],
+              opacity: [0.9, 0.9, 0, 0, 0.9]
+            }}
+            transition={{
+              duration: 20,
+              repeat: Infinity,
+              ease: "easeInOut"
+            }}
+            className="font-serif text-5xl sm:text-6xl font-bold tracking-tight text-monogram-gradient text-glow-rosegold inline-block"
+          >
+            S
+          </motion.span>
+
+          {/* Subtle line below */}
+          <motion.div 
+            animate={{ width: ["100%", "100%", "40%", "40%", "100%"] }}
+            transition={{ duration: 20, repeat: Infinity, ease: "easeInOut" }}
+            className="absolute -bottom-3 left-1/2 -translate-x-1/2 h-[1px] bg-gradient-to-r from-transparent via-rosegold-deep/40 to-transparent" 
+          />
+        </div>
 
         {/* Central Final Message */}
         <motion.div

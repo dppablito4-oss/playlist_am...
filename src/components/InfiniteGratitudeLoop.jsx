@@ -19,25 +19,19 @@ export default function InfiniteGratitudeLoop() {
       {/* Content Container */}
       <div className="relative z-10 max-w-lg mx-auto flex flex-col items-center text-center px-6">
         
-        {/* Monogram S & S — Muted */}
+        {/* Single Monogram S — Representing Quiet Solitude & Respectful Closure */}
         <motion.div
           initial={{ opacity: 0, scale: 0.9 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ duration: 2, delay: 0.3 }}
           className="mb-12"
         >
-          <div className="flex items-center justify-center space-x-2">
-            <span className="font-serif text-4xl sm:text-5xl font-bold tracking-tight text-monogram-gradient opacity-60">
-              S
-            </span>
-            <span className="font-serif text-2xl sm:text-3xl font-light text-rosegold-mid opacity-40 italic">
-              &
-            </span>
-            <span className="font-serif text-4xl sm:text-5xl font-bold tracking-tight text-monogram-gradient opacity-60">
+          <div className="flex items-center justify-center">
+            <span className="font-serif text-5xl sm:text-6xl font-bold tracking-tight text-monogram-gradient opacity-60">
               S
             </span>
           </div>
-          <div className="h-[1px] bg-gradient-to-r from-transparent via-rosegold-deep/30 to-transparent mt-2 w-full" />
+          <div className="h-[1px] bg-gradient-to-r from-transparent via-rosegold-deep/30 to-transparent mt-2 w-16 mx-auto" />
         </motion.div>
 
         {/* Central Final Message */}

@@ -153,7 +153,6 @@ export const PLAYLISTS = {
       heading: "Nota de Despedida Definitiva",
       body: "Acepto tu decisión. Me duele, pero te quiero libre. Gracias por haber sido mi primer gran amor. Te deseo de corazón salud, éxito y paz en tu camino. Adiós, Saly.",
       signature: "— Samuel, para siempre agradecido (S&S)",
-      emoji: "🛡️"
     },
     tracks: [
       {

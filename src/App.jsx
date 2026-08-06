@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { MessageSquareHeart } from 'lucide-react';
+import { MessageSquareHeart, Info } from 'lucide-react';
 import BackgroundCanvas from './components/BackgroundCanvas';
 import GeometricCornerHearts from './components/GeometricCornerHearts';
 import Header from './components/Header';
@@ -25,6 +25,7 @@ export default function App() {
   const [currentState, setCurrentState] = useState('INITIAL');
   const [secondsLeft, setSecondsLeft] = useState(FAREWELL_TIMEOUT_SECONDS);
   const [isYesRevealed, setIsYesRevealed] = useState(false);
+  const [audioNotice, setAudioNotice] = useState(null);
 
   const activePlaylist = PLAYLISTS[currentState] || PLAYLISTS.INITIAL;
   const playlist = activePlaylist.tracks;
@@ -147,6 +148,35 @@ export default function App() {
     return () => clearInterval(interval);
   }, [currentState]);
 
+  // ─── Audio Helper with Discrete Error Fallback ───────────
+  const attemptPlayTrack = (track) => {
+    setAudioNotice(null);
+    const audio = audioRef.current;
+    if (!track) return;
+
+    if (audio && track.audioUrl) {
+      audio.src = track.audioUrl;
+      audio.currentTime = 0;
+      audio.play()
+        .then(() => {
+          setIsPlaying(true);
+          stopSynthMelodyLoop();
+        })
+        .catch((err) => {
+          console.warn('Audio play failed, activating synth fallback:', err);
+          setIsPlaying(true);
+          startSynthMelodyLoop();
+          setAudioNotice('Modo sintetizador romántico activado.');
+          setTimeout(() => setAudioNotice(null), 5000);
+        });
+    } else {
+      setIsPlaying(true);
+      startSynthMelodyLoop();
+      setAudioNotice('Modo sintetizador romántico activado.');
+      setTimeout(() => setAudioNotice(null), 5000);
+    }
+  };
+
   // ─── 3. State Transition ─────────────────────────────────
   const handleSelectDecision = async (decision) => {
     setCurrentState(decision);
@@ -166,31 +196,20 @@ export default function App() {
     setCurrentTime(0);
     setIsPlaying(false);
 
-    // If decision is NOT YES, automatically load/play audio. If YES, wait until CTA reveal if preferred.
-    setTimeout(() => {
-      const audio = audioRef.current;
-      if (audio && firstTrack?.audioUrl) {
-        audio.src = firstTrack.audioUrl;
-      }
-    }, 200);
+    if (audioRef.current && firstTrack?.audioUrl) {
+      audioRef.current.src = firstTrack.audioUrl;
+    }
   };
 
   const handleRevealYesPlaylist = () => {
     setIsYesRevealed(true);
-    // Smoothly start playback if paused
-    const audio = audioRef.current;
-    if (audio && currentTrack?.audioUrl) {
-      if (!audio.src || audio.src === '' || audio.src === 'about:blank') {
-        audio.src = currentTrack.audioUrl;
-      }
-      audio.play().then(() => setIsPlaying(true))
-        .catch(() => { setIsPlaying(true); startSynthMelodyLoop(); });
-    }
-    // Scroll down to playlist smoothly
+    attemptPlayTrack(currentTrack);
+
+    // Smooth scroll to first track in playlist
     setTimeout(() => {
       const playlistElem = document.getElementById('playlist-container');
       if (playlistElem) {
-        playlistElem.scrollIntoView({ behavior: 'smooth' });
+        playlistElem.scrollIntoView({ behavior: 'smooth', block: 'start' });
       }
     }, 150);
   };
@@ -243,32 +262,17 @@ export default function App() {
       stopSynthMelodyLoop();
       setIsPlaying(false);
     } else {
-      if (currentTrack?.audioUrl) {
-        if (!audio.src || audio.src === '' || audio.src === 'about:blank') {
-          audio.src = currentTrack.audioUrl;
-        }
-        audio.play().then(() => setIsPlaying(true))
-          .catch(() => { setIsPlaying(true); startSynthMelodyLoop(); });
-      } else {
-        setIsPlaying(true);
-        startSynthMelodyLoop();
-      }
+      attemptPlayTrack(currentTrack);
     }
   };
 
   // ─── Select Track ──────────────────────────────────────
   const handleSelectTrack = (track) => {
     if (!track) return;
-    const audio = audioRef.current;
     setCurrentTrack(track);
     setCurrentTime(0);
     stopSynthMelodyLoop();
-    if (audio) {
-      audio.src = track.audioUrl;
-      audio.currentTime = 0;
-      audio.play().then(() => setIsPlaying(true))
-        .catch(() => { setIsPlaying(true); startSynthMelodyLoop(); });
-    }
+    attemptPlayTrack(track);
   };
 
   const handleSkipNext = () => {
@@ -322,7 +326,7 @@ export default function App() {
 
   // ─── Render ────────────────────────────────────────────
   return (
-    <div className="min-h-screen relative overflow-hidden bg-obsidian text-rosegold selection:bg-rosegold-dark selection:text-white flex flex-col pb-36">
+    <div className="min-h-screen relative overflow-hidden bg-obsidian text-rosegold selection:bg-rosegold-dark selection:text-white flex flex-col pb-44 sm:pb-36">
       <BackgroundCanvas />
       <GeometricCornerHearts />
 
@@ -334,7 +338,10 @@ export default function App() {
         )}
 
         {isYes && (
-          <YesHeroSection onRevealPlaylist={handleRevealYesPlaylist} />
+          <YesHeroSection
+            onRevealPlaylist={handleRevealYesPlaylist}
+            isRevealed={isYesRevealed}
+          />
         )}
 
         {/* 2. Banner de Estado y Nota (para NO, TIME, MAYBE) */}
@@ -357,7 +364,7 @@ export default function App() {
             initial={isYes ? { opacity: 0, y: 30 } : { opacity: 1 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, ease: "easeOut" }}
-            className="w-full"
+            className="w-full scroll-mt-6"
           >
             <HeartMeshPlaylist
               playlist={playlist}
@@ -410,6 +417,21 @@ export default function App() {
         )}
 
       </main>
+
+      {/* Discrete Audio Notice Toast if Audio fails */}
+      <AnimatePresence>
+        {audioNotice && (
+          <motion.div
+            initial={{ opacity: 0, y: 15 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 15 }}
+            className="fixed bottom-24 left-1/2 -translate-x-1/2 z-50 px-4 py-2 rounded-full glass-surface border border-rosegold-deep/30 text-[11px] text-rosegold-light/90 font-sans shadow-lg flex items-center gap-2 pointer-events-none"
+          >
+            <Info className="w-3.5 h-3.5 text-rosegold-mid flex-shrink-0" />
+            <span>{audioNotice}</span>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Bottom Floating Player */}
       {showPlayer && (

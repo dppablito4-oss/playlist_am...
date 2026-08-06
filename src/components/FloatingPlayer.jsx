@@ -59,7 +59,7 @@ export default function FloatingPlayer({
             <div className="flex items-center space-x-3 min-w-0 flex-1">
               <div className="relative w-12 h-12 sm:w-14 sm:h-14 rounded-xl overflow-hidden shadow-lg flex-shrink-0 border border-rosegold/30">
                 <img
-                  src={currentTrack.cover}
+                  src={currentTrack.cover || currentTrack.coverUrl}
                   alt={currentTrack.title}
                   className={`w-full h-full object-cover ${isPlaying ? 'animate-spin-slow' : ''}`}
                 />

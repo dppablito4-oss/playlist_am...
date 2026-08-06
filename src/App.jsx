@@ -40,10 +40,22 @@ export default function App() {
   const [isLoveLetterOpen, setIsLoveLetterOpen] = useState(false);
   const [isQuestionOpen, setIsQuestionOpen] = useState(false);
 
-  // ─── Refs ───────────────────────────────────────────────
+  // ─── Refs for Stale Closure Prevention ──────────────────
   const audioRef = useRef(null);
   const audioCtxRef = useRef(null);
   const synthTimerRef = useRef(null);
+
+  const currentTrackRef = useRef(currentTrack);
+  const playlistRef = useRef(playlist);
+  const currentStateRef = useRef(currentState);
+  const isLoopingRef = useRef(isLooping);
+
+  useEffect(() => {
+    currentTrackRef.current = currentTrack;
+    playlistRef.current = playlist;
+    currentStateRef.current = currentState;
+    isLoopingRef.current = isLooping;
+  }, [currentTrack, playlist, currentState, isLooping]);
 
   // ─── 1. Load Initial Web State & Likes ──────────────────
   useEffect(() => {
@@ -72,16 +84,41 @@ export default function App() {
 
     const handleTimeUpdate = () => setCurrentTime(audio.currentTime);
     const handleLoadedMetadata = () => setDuration(audio.duration || 240);
-    const handleEnded = () => handleSkipNext();
+    const handleEndedListener = () => {
+      if (isLoopingRef.current) {
+        audio.currentTime = 0;
+        audio.play().then(() => setIsPlaying(true)).catch(() => {});
+        return;
+      }
+
+      const list = playlistRef.current || [];
+      const track = currentTrackRef.current;
+      const state = currentStateRef.current;
+      if (list.length === 0) return;
+
+      const idx = list.findIndex(t => t.id === track?.id);
+
+      if (state === 'NO' && idx === list.length - 1) {
+        audio.pause();
+        setIsPlaying(false);
+        setTimeout(() => {
+          setCurrentState('EXPIRED');
+        }, 2000);
+        return;
+      }
+
+      const nextTrack = list[(idx + 1) % list.length];
+      handleSelectTrack(nextTrack);
+    };
 
     audio.addEventListener('timeupdate', handleTimeUpdate);
     audio.addEventListener('loadedmetadata', handleLoadedMetadata);
-    audio.addEventListener('ended', handleEnded);
+    audio.addEventListener('ended', handleEndedListener);
 
     return () => {
       audio.removeEventListener('timeupdate', handleTimeUpdate);
       audio.removeEventListener('loadedmetadata', handleLoadedMetadata);
-      audio.removeEventListener('ended', handleEnded);
+      audio.removeEventListener('ended', handleEndedListener);
       audio.pause();
     };
   }, []);
@@ -178,31 +215,44 @@ export default function App() {
     const audio = audioRef.current;
     if (!audio) return;
     if (isPlaying) {
-      audio.pause(); stopSynthMelodyLoop(); setIsPlaying(false);
+      audio.pause();
+      stopSynthMelodyLoop();
+      setIsPlaying(false);
     } else {
       if (currentTrack?.audioUrl) {
-        if (audio.src !== window.location.origin + currentTrack.audioUrl) audio.src = currentTrack.audioUrl;
+        if (!audio.src || audio.src === '' || audio.src === 'about:blank') {
+          audio.src = currentTrack.audioUrl;
+        }
         audio.play().then(() => setIsPlaying(true))
           .catch(() => { setIsPlaying(true); startSynthMelodyLoop(); });
-      } else { setIsPlaying(true); startSynthMelodyLoop(); }
+      } else {
+        setIsPlaying(true);
+        startSynthMelodyLoop();
+      }
     }
   };
 
   // ─── Select Track ──────────────────────────────────────
   const handleSelectTrack = (track) => {
+    if (!track) return;
     const audio = audioRef.current;
-    setCurrentTrack(track); setCurrentTime(0); stopSynthMelodyLoop();
+    setCurrentTrack(track);
+    setCurrentTime(0);
+    stopSynthMelodyLoop();
     if (audio) {
       audio.src = track.audioUrl;
+      audio.currentTime = 0;
       audio.play().then(() => setIsPlaying(true))
         .catch(() => { setIsPlaying(true); startSynthMelodyLoop(); });
     }
   };
 
   const handleSkipNext = () => {
-    const i = playlist.findIndex(t => t.id === currentTrack?.id);
+    const currentList = playlistRef.current || playlist;
+    const track = currentTrackRef.current || currentTrack;
+    const i = currentList.findIndex(t => t.id === track?.id);
     
-    if (currentState === 'NO' && i === playlist.length - 1) {
+    if (currentState === 'NO' && i === currentList.length - 1) {
       if (audioRef.current) audioRef.current.pause();
       setIsPlaying(false);
       
@@ -212,12 +262,16 @@ export default function App() {
       return;
     }
 
-    handleSelectTrack(playlist[(i + 1) % playlist.length]);
+    const nextTrack = currentList[(i + 1) % currentList.length];
+    handleSelectTrack(nextTrack);
   };
 
   const handleSkipPrevious = () => {
-    const i = playlist.findIndex(t => t.id === currentTrack?.id);
-    handleSelectTrack(playlist[(i - 1 + playlist.length) % playlist.length]);
+    const currentList = playlistRef.current || playlist;
+    const track = currentTrackRef.current || currentTrack;
+    const i = currentList.findIndex(t => t.id === track?.id);
+    const prevTrack = currentList[(i - 1 + currentList.length) % currentList.length];
+    handleSelectTrack(prevTrack);
   };
 
   const handleSeek = (t) => {

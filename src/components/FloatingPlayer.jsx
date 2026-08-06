@@ -47,42 +47,47 @@ export default function FloatingPlayer({
         initial={{ y: 100, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
         exit={{ y: 100, opacity: 0 }}
-        transition={{ type: 'spring', damping: 22, stiffness: 200 }}
-        className="fixed bottom-3 left-3 right-3 sm:bottom-6 sm:left-1/2 sm:-translate-x-1/2 sm:w-full sm:max-w-2xl z-50"
+        transition={{ type: 'spring', damping: 24, stiffness: 200 }}
+        className="fixed bottom-3 left-3 right-3 sm:bottom-5 sm:left-1/2 sm:-translate-x-1/2 sm:w-full sm:max-w-2xl z-50"
       >
-        <div className="glass-burgundy rounded-2xl p-3 sm:p-4 shadow-burgundy-glow border border-rosegold/30 flex flex-col space-y-2">
+        <div className="glass-burgundy rounded-2xl sm:rounded-4xl p-3 sm:p-4 shadow-burgundy-glow overflow-hidden">
           
+          {/* Shimmer edge accent */}
+          <div className="absolute inset-0 rounded-2xl sm:rounded-4xl shimmer-border pointer-events-none opacity-50" />
+
           {/* Top Row: Track Info + Playback Controls */}
-          <div className="flex items-center justify-between gap-3">
+          <div className="relative flex items-center justify-between gap-3">
             
             {/* Left: Track Cover & Details */}
             <div className="flex items-center space-x-3 min-w-0 flex-1">
-              <div className="relative w-12 h-12 sm:w-14 sm:h-14 rounded-xl overflow-hidden shadow-lg flex-shrink-0 border border-rosegold/30">
+              <div className="relative w-12 h-12 sm:w-14 sm:h-14 rounded-xl overflow-hidden shadow-lg flex-shrink-0 border border-rosegold/20 glow-ring">
                 <img
                   src={currentTrack.cover || currentTrack.coverUrl}
                   alt={currentTrack.title}
-                  className={`w-full h-full object-cover ${isPlaying ? 'animate-spin-slow' : ''}`}
+                  className={`w-full h-full object-cover transition-transform duration-[20s] ${
+                    isPlaying ? 'animate-spin-slow' : ''
+                  }`}
                 />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent" />
+                <div className="absolute inset-0 bg-gradient-to-t from-obsidian-deep/50 via-transparent to-transparent" />
               </div>
 
               <div className="min-w-0 flex-1">
                 <h4 className="text-xs sm:text-sm font-bold text-rosegold-light text-glow-rosegold truncate flex items-center gap-1.5">
                   <span>{currentTrack.title}</span>
-                  {isPlaying && <Sparkles className="w-3 h-3 text-rosegold-mid animate-pulse flex-shrink-0" />}
+                  {isPlaying && <Sparkles className="w-3 h-3 text-rosegold-mid animate-pulse-glow flex-shrink-0" />}
                 </h4>
-                <p className="text-xs text-rosegold-deep truncate font-light mt-0.5">
+                <p className="text-xs text-rosegold-deep/80 truncate font-light mt-0.5 font-sans">
                   {currentTrack.artist}
                 </p>
               </div>
             </div>
 
             {/* Center: Main Controls */}
-            <div className="flex items-center space-x-2 sm:space-x-4">
+            <div className="flex items-center space-x-1.5 sm:space-x-3">
               {/* Skip Previous */}
               <button
                 onClick={onSkipPrevious}
-                className="p-1.5 text-rosegold-mid hover:text-rosegold hover:scale-110 transition-transform"
+                className="p-2 text-rosegold-mid hover:text-rosegold-light hover:scale-110 active:scale-95 transition-all duration-200 min-w-[44px] min-h-[44px] flex items-center justify-center"
                 title="Canción anterior"
               >
                 <SkipBack className="w-4 h-4 sm:w-5 sm:h-5 fill-current" />
@@ -90,10 +95,10 @@ export default function FloatingPlayer({
 
               {/* Play / Pause Main Button */}
               <motion.button
-                whileHover={{ scale: 1.1 }}
+                whileHover={{ scale: 1.08 }}
                 whileTap={{ scale: 0.92 }}
                 onClick={onTogglePlay}
-                className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-gradient-to-tr from-rosegold-dark via-rosegold-mid to-rosegold-light text-obsidian flex items-center justify-center shadow-rose-glow"
+                className="w-11 h-11 sm:w-13 sm:h-13 rounded-full bg-gradient-to-tr from-rosegold-dark via-rosegold-mid to-rosegold-light text-obsidian flex items-center justify-center shadow-rose-glow-lg cursor-pointer"
               >
                 {isPlaying ? (
                   <Pause className="w-5 h-5 sm:w-6 sm:h-6 fill-obsidian stroke-obsidian" />
@@ -105,22 +110,22 @@ export default function FloatingPlayer({
               {/* Skip Next */}
               <button
                 onClick={onSkipNext}
-                className="p-1.5 text-rosegold-mid hover:text-rosegold hover:scale-110 transition-transform"
+                className="p-2 text-rosegold-mid hover:text-rosegold-light hover:scale-110 active:scale-95 transition-all duration-200 min-w-[44px] min-h-[44px] flex items-center justify-center"
                 title="Siguiente canción"
               >
                 <SkipForward className="w-4 h-4 sm:w-5 sm:h-5 fill-current" />
               </button>
             </div>
 
-            {/* Right: Loop & Volume Controls */}
-            <div className="hidden sm:flex items-center space-x-3">
+            {/* Right: Loop & Volume Controls (Desktop Only) */}
+            <div className="hidden sm:flex items-center space-x-2.5">
               {/* Repeat Loop */}
               <button
                 onClick={onToggleLoop}
-                className={`p-1.5 rounded-lg transition-colors ${
+                className={`p-2 rounded-xl transition-all duration-200 min-w-[44px] min-h-[44px] flex items-center justify-center cursor-pointer ${
                   isLooping
-                    ? 'text-rosegold bg-rosegold-dark/40 border border-rosegold/40'
-                    : 'text-rosegold-deep hover:text-rosegold-light'
+                    ? 'text-rosegold bg-rosegold-dark/30 border border-rosegold/30 shadow-rose-glow'
+                    : 'text-rosegold-deep hover:text-rosegold-light hover:bg-obsidian/40'
                 }`}
                 title={isLooping ? 'Bucle activado' : 'Activar bucle'}
               >
@@ -128,10 +133,11 @@ export default function FloatingPlayer({
               </button>
 
               {/* Volume */}
-              <div className="flex items-center space-x-1">
+              <div className="flex items-center space-x-1.5">
                 <button
                   onClick={handleToggleMute}
-                  className="text-rosegold-mid hover:text-rosegold"
+                  className="p-2 text-rosegold-mid hover:text-rosegold-light transition-colors duration-200 min-w-[44px] min-h-[44px] flex items-center justify-center cursor-pointer"
+                  title={isMuted ? 'Activar sonido' : 'Silenciar'}
                 >
                   {isMuted || volume === 0 ? (
                     <VolumeX className="w-4 h-4 text-rosegold-deep" />
@@ -149,7 +155,7 @@ export default function FloatingPlayer({
                     setIsMuted(false);
                     onChangeVolume(parseFloat(e.target.value));
                   }}
-                  className="w-16 h-1 accent-rosegold bg-obsidian-card rounded-lg cursor-pointer"
+                  className="w-20 h-1 cursor-pointer"
                 />
               </div>
             </div>
@@ -157,8 +163,8 @@ export default function FloatingPlayer({
           </div>
 
           {/* Bottom Row: Progress Bar & Timers */}
-          <div className="flex items-center space-x-2 text-[10px] sm:text-xs font-mono text-rosegold-deep/80">
-            <span>{formatTime(currentTime)}</span>
+          <div className="relative flex items-center space-x-2.5 text-[10px] sm:text-xs font-sans text-rosegold-deep/70 mt-2.5 tabular-nums">
+            <span className="w-8 text-right">{formatTime(currentTime)}</span>
             
             <div
               onClick={(e) => {
@@ -167,17 +173,18 @@ export default function FloatingPlayer({
                 const newTime = (clickX / rect.width) * (duration || 0);
                 onSeek(newTime);
               }}
-              className="relative flex-1 h-1.5 bg-obsidian/60 hover:h-2 rounded-full cursor-pointer overflow-hidden transition-all group"
+              className="relative flex-1 h-1.5 bg-obsidian/50 hover:h-2.5 rounded-full cursor-pointer overflow-hidden transition-all duration-200 group"
             >
               <div
                 className="h-full bg-gradient-to-r from-rosegold-dark via-rosegold-mid to-rosegold-light rounded-full transition-all duration-150 relative"
                 style={{ width: `${progressPercent}%` }}
               >
-                <div className="absolute right-0 top-1/2 -translate-y-1/2 w-2.5 h-2.5 rounded-full bg-white shadow-[0_0_8px_#fff] opacity-0 group-hover:opacity-100 transition-opacity" />
+                {/* Glowing seek head */}
+                <div className="absolute right-0 top-1/2 -translate-y-1/2 w-3 h-3 rounded-full bg-rosegold-light shadow-[0_0_10px_rgba(247,214,200,0.7)] opacity-0 group-hover:opacity-100 transition-all duration-200 scale-75 group-hover:scale-100" />
               </div>
             </div>
 
-            <span>{formatTime(duration)}</span>
+            <span className="w-8">{formatTime(duration)}</span>
           </div>
 
         </div>

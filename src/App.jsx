@@ -356,7 +356,7 @@ export default function App() {
           >
             <button
               onClick={() => setIsQuestionOpen(true)}
-              className="px-6 py-3 rounded-full bg-gradient-to-r from-rosegold-dark via-rosegold-mid to-rosegold-light text-obsidian text-xs sm:text-sm font-extrabold tracking-wide flex items-center space-x-2.5 shadow-rose-glow hover:shadow-[0_0_35px_rgba(242,203,190,0.5)] transition-all duration-300 group cursor-pointer"
+              className="px-7 py-3.5 rounded-full bg-gradient-to-r from-rosegold-dark via-rosegold-mid to-rosegold-light text-obsidian text-xs sm:text-sm font-extrabold tracking-wide flex items-center space-x-2.5 shadow-rose-glow hover:shadow-rose-glow-lg transition-all duration-300 group cursor-pointer min-h-[48px]"
             >
               <MessageSquareHeart className="w-4 h-4 text-obsidian group-hover:scale-110 transition-transform" />
               <span>Abrir La Pregunta Final</span>

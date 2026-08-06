@@ -2,83 +2,251 @@
 @tailwind components;
 @tailwind utilities;
 
+/* ─── Design Tokens (CSS Custom Properties) ───────────────── */
+:root {
+  /* Surfaces */
+  --bg-obsidian: #080406;
+  --bg-surface-glass: rgba(18, 10, 13, 0.65);
+  --bg-surface-elevated: rgba(28, 14, 19, 0.85);
+
+  /* Rose Gold Scale */
+  --rose-gold-light: #F7D6C8;
+  --rose-gold-main: #F2CBBE;
+  --rose-gold-muted: #E5A3B2;
+  --rose-gold-deep: #C87588;
+  --burgundy-vibrant: #9E2B48;
+  --burgundy-dark: #69172E;
+
+  /* Accents */
+  --champagne-gold: #F5E6D3;
+
+  /* Borders & Glows */
+  --border-glass: rgba(242, 203, 190, 0.18);
+  --border-glass-hover: rgba(242, 203, 190, 0.40);
+  --shadow-rose: 0 0 30px rgba(242, 203, 190, 0.25);
+  --shadow-burgundy: 0 12px 40px rgba(105, 23, 46, 0.50);
+}
+
+/* ─── Base Layer ──────────────────────────────────────────── */
 @layer base {
   body {
-    background-color: #0b0709;
-    color: #f2cbbe;
-    font-family: 'Inter', sans-serif;
+    background-color: var(--bg-obsidian);
+    color: var(--rose-gold-main);
+    font-family: 'Plus Jakarta Sans', 'Inter', system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
   }
 
   h1, h2, h3, .font-serif {
     font-family: 'Cormorant Garamond', Georgia, serif;
   }
+
+  .font-script {
+    font-family: 'Great Vibes', cursive;
+  }
 }
 
-/* Glassmorphism Custom Utilities */
+/* ─── Glassmorphism Panels ────────────────────────────────── */
 .glass-panel {
-  background: rgba(18, 10, 13, 0.7);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  border: 1px solid rgba(242, 203, 190, 0.15);
+  background: var(--bg-surface-glass);
+  backdrop-filter: blur(20px) saturate(1.3);
+  -webkit-backdrop-filter: blur(20px) saturate(1.3);
+  border: 1px solid var(--border-glass);
+  transition: border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+.glass-panel:hover {
+  border-color: var(--border-glass-hover);
 }
 
 .glass-burgundy {
-  background: linear-gradient(90deg, rgba(158, 43, 72, 0.75) 0%, rgba(105, 23, 46, 0.6) 100%);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border: 1px solid rgba(242, 163, 182, 0.3);
-  box-shadow: 0 8px 30px rgba(138, 28, 58, 0.4);
+  background: linear-gradient(
+    135deg,
+    rgba(158, 43, 72, 0.70) 0%,
+    rgba(120, 30, 55, 0.55) 50%,
+    rgba(105, 23, 46, 0.50) 100%
+  );
+  backdrop-filter: blur(16px) saturate(1.4);
+  -webkit-backdrop-filter: blur(16px) saturate(1.4);
+  border: 1px solid rgba(242, 163, 182, 0.28);
+  box-shadow:
+    0 8px 32px rgba(138, 28, 58, 0.35),
+    inset 0 1px 0 rgba(247, 214, 200, 0.08);
 }
 
+.glass-surface {
+  background: var(--bg-surface-elevated);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(242, 203, 190, 0.10);
+}
+
+/* ─── Text Effects ────────────────────────────────────────── */
 .text-glow-rosegold {
-  text-shadow: 0 0 16px rgba(242, 203, 190, 0.45), 0 0 30px rgba(229, 163, 178, 0.25);
+  text-shadow:
+    0 0 12px rgba(242, 203, 190, 0.40),
+    0 0 28px rgba(229, 163, 178, 0.20),
+    0 2px 8px rgba(0, 0, 0, 0.30);
 }
 
 .text-monogram-gradient {
-  background: linear-gradient(135deg, #f7d6c8 0%, #e5a3b2 45%, #c87588 70%, #9e4b60 100%);
+  background: linear-gradient(
+    135deg,
+    #f7d6c8 0%,
+    #f2cbbe 20%,
+    #e5a3b2 45%,
+    #c87588 70%,
+    #9e4b60 100%
+  );
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
+  background-clip: text;
 }
 
-/* Equalizer Bars Animation */
+/* ─── Equalizer Bars ──────────────────────────────────────── */
 .eq-bar {
   width: 3px;
-  background-color: #f2cbbe;
+  background: linear-gradient(to top, var(--rose-gold-deep), var(--rose-gold-light));
   border-radius: 9999px;
-  animation: eqPulse 1.2s ease-in-out infinite alternate;
+  animation: eqPulse 0.9s ease-in-out infinite alternate;
+  box-shadow: 0 0 6px rgba(242, 203, 190, 0.4);
 }
 
-.eq-bar:nth-child(1) { animation-delay: 0.1s; height: 40%; }
-.eq-bar:nth-child(2) { animation-delay: 0.3s; height: 90%; }
-.eq-bar:nth-child(3) { animation-delay: 0.2s; height: 60%; }
-.eq-bar:nth-child(4) { animation-delay: 0.4s; height: 80%; }
+.eq-bar:nth-child(1) { animation-delay: 0.0s; height: 35%; }
+.eq-bar:nth-child(2) { animation-delay: 0.15s; height: 90%; }
+.eq-bar:nth-child(3) { animation-delay: 0.08s; height: 55%; }
+.eq-bar:nth-child(4) { animation-delay: 0.22s; height: 75%; }
 
 @keyframes eqPulse {
-  0% { transform: scaleY(0.3); opacity: 0.6; }
+  0%   { transform: scaleY(0.25); opacity: 0.5; }
   100% { transform: scaleY(1); opacity: 1; }
 }
 
-/* Heartbeat Pulse — Subtle Scale Animation */
+/* ─── Heartbeat Animation ─────────────────────────────────── */
 @keyframes heartbeat {
   0%   { transform: scale(1); }
-  14%  { transform: scale(1.04); }
-  28%  { transform: scale(0.98); }
-  42%  { transform: scale(1.025); }
+  14%  { transform: scale(1.05); }
+  28%  { transform: scale(0.97); }
+  42%  { transform: scale(1.03); }
   70%  { transform: scale(1); }
   100% { transform: scale(1); }
 }
 
-/* Custom Scrollbars */
+/* ─── Heart Like Pop ──────────────────────────────────────── */
+@keyframes heartPop {
+  0%   { transform: scale(1); }
+  30%  { transform: scale(1.35); }
+  50%  { transform: scale(0.9); }
+  70%  { transform: scale(1.1); }
+  100% { transform: scale(1); }
+}
+
+.heart-pop {
+  animation: heartPop 0.5s cubic-bezier(0.17, 0.89, 0.32, 1.49);
+}
+
+/* ─── Shimmer Highlight Effect ────────────────────────────── */
+@keyframes shimmer {
+  0%   { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+.shimmer-border {
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(242, 203, 190, 0.15) 50%,
+    transparent 100%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 3s ease-in-out infinite;
+}
+
+/* ─── Glow Pulse Ring ─────────────────────────────────────── */
+@keyframes glowRing {
+  0%, 100% { box-shadow: 0 0 12px rgba(242, 203, 190, 0.2), 0 0 24px rgba(158, 43, 72, 0.1); }
+  50%      { box-shadow: 0 0 20px rgba(242, 203, 190, 0.4), 0 0 40px rgba(158, 43, 72, 0.2); }
+}
+
+.glow-ring {
+  animation: glowRing 3s ease-in-out infinite;
+}
+
+/* ─── Custom Scrollbars ───────────────────────────────────── */
 ::-webkit-scrollbar {
-  width: 6px;
+  width: 5px;
 }
 ::-webkit-scrollbar-track {
-  background: #0b0709;
+  background: var(--bg-obsidian);
 }
 ::-webkit-scrollbar-thumb {
-  background: rgba(200, 117, 136, 0.4);
-  border-radius: 4px;
+  background: rgba(200, 117, 136, 0.35);
+  border-radius: 10px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(242, 203, 190, 0.7);
+  background: rgba(242, 203, 190, 0.60);
+}
+
+/* ─── Custom Range Slider (Audio Progress & Volume) ───────── */
+input[type="range"] {
+  -webkit-appearance: none;
+  appearance: none;
+  background: transparent;
+  cursor: pointer;
+}
+
+input[type="range"]::-webkit-slider-runnable-track {
+  height: 4px;
+  background: rgba(200, 117, 136, 0.25);
+  border-radius: 10px;
+}
+
+input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: var(--rose-gold-light);
+  border: 2px solid var(--rose-gold-muted);
+  box-shadow: 0 0 8px rgba(242, 203, 190, 0.5);
+  margin-top: -5px;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+input[type="range"]::-webkit-slider-thumb:hover {
+  transform: scale(1.2);
+  box-shadow: 0 0 14px rgba(242, 203, 190, 0.7);
+}
+
+input[type="range"]::-moz-range-track {
+  height: 4px;
+  background: rgba(200, 117, 136, 0.25);
+  border-radius: 10px;
+  border: none;
+}
+
+input[type="range"]::-moz-range-thumb {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: var(--rose-gold-light);
+  border: 2px solid var(--rose-gold-muted);
+  box-shadow: 0 0 8px rgba(242, 203, 190, 0.5);
+}
+
+/* ─── Focus Visible for Keyboard Navigation ───────────────── */
+*:focus-visible {
+  outline: 2px solid var(--rose-gold-muted);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* ─── Reduced Motion Support ──────────────────────────────── */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
 }

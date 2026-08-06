@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Play, Pause, SkipBack, SkipForward, Repeat, Volume2, VolumeX, Sparkles } from 'lucide-react';
+import { Play, Pause, SkipBack, SkipForward, Repeat, Volume2, VolumeX, Sparkles, Music } from 'lucide-react';
 
 export default function FloatingPlayer({
   currentTrack,
@@ -18,8 +18,11 @@ export default function FloatingPlayer({
 }) {
   const [isMuted, setIsMuted] = useState(false);
   const [prevVol, setPrevVol] = useState(volume);
+  const [imageError, setImageError] = useState(false);
 
   if (!currentTrack) return null;
+
+  const coverSrc = currentTrack.coverUrl || currentTrack.cover;
 
   const formatTime = (seconds) => {
     if (isNaN(seconds) || seconds === null) return '0:00';
@@ -60,15 +63,22 @@ export default function FloatingPlayer({
             
             {/* Left: Track Cover & Details */}
             <div className="flex items-center space-x-3 min-w-0 flex-1">
-              <div className="relative w-12 h-12 sm:w-14 sm:h-14 rounded-xl overflow-hidden shadow-lg flex-shrink-0 border border-rosegold/20 glow-ring">
-                <img
-                  src={currentTrack.cover || currentTrack.coverUrl}
-                  alt={currentTrack.title}
-                  className={`w-full h-full object-cover transition-transform duration-[20s] ${
-                    isPlaying ? 'animate-spin-slow' : ''
-                  }`}
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-obsidian-deep/50 via-transparent to-transparent" />
+              <div className="relative w-12 h-12 sm:w-14 sm:h-14 rounded-xl overflow-hidden shadow-lg flex-shrink-0 border border-rosegold/20 glow-ring bg-gradient-to-tr from-burgundy-dark via-obsidian-surface to-rosegold-dark/40 flex items-center justify-center">
+                {!imageError && coverSrc ? (
+                  <img
+                    src={coverSrc}
+                    alt={currentTrack.title}
+                    onError={() => setImageError(true)}
+                    className={`w-full h-full object-cover transition-transform duration-[20s] ${
+                      isPlaying ? 'animate-spin-slow' : ''
+                    }`}
+                  />
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-rosegold-dark/50 to-obsidian-deep text-rosegold-light">
+                    <Music className="w-5 h-5 text-rosegold-mid" />
+                  </div>
+                )}
+                <div className="absolute inset-0 bg-gradient-to-t from-obsidian-deep/50 via-transparent to-transparent pointer-events-none" />
               </div>
 
               <div className="min-w-0 flex-1">

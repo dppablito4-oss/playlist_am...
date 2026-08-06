@@ -1,9 +1,10 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { MessageSquareHeart } from 'lucide-react';
 import BackgroundCanvas from './components/BackgroundCanvas';
 import GeometricCornerHearts from './components/GeometricCornerHearts';
 import Header from './components/Header';
+import YesHeroSection from './components/YesHeroSection';
 import HeartMeshPlaylist from './components/HeartMeshPlaylist';
 import SimpleDedicatedLetter from './components/SimpleDedicatedLetter';
 import FloatingPlayer from './components/FloatingPlayer';
@@ -23,6 +24,7 @@ export default function App() {
   // 'INITIAL' | 'YES' | 'TIME' | 'MAYBE' | 'NO' | 'EXPIRED'
   const [currentState, setCurrentState] = useState('INITIAL');
   const [secondsLeft, setSecondsLeft] = useState(FAREWELL_TIMEOUT_SECONDS);
+  const [isYesRevealed, setIsYesRevealed] = useState(false);
 
   const activePlaylist = PLAYLISTS[currentState] || PLAYLISTS.INITIAL;
   const playlist = activePlaylist.tracks;
@@ -148,6 +150,9 @@ export default function App() {
   // ─── 3. State Transition ─────────────────────────────────
   const handleSelectDecision = async (decision) => {
     setCurrentState(decision);
+    if (decision === 'YES') {
+      setIsYesRevealed(false);
+    }
     stopSynthMelodyLoop();
     await updateGlobalWebState(decision);
 
@@ -161,14 +166,33 @@ export default function App() {
     setCurrentTime(0);
     setIsPlaying(false);
 
+    // If decision is NOT YES, automatically load/play audio. If YES, wait until CTA reveal if preferred.
     setTimeout(() => {
       const audio = audioRef.current;
       if (audio && firstTrack?.audioUrl) {
         audio.src = firstTrack.audioUrl;
-        audio.play().then(() => setIsPlaying(true))
-          .catch(() => { setIsPlaying(true); startSynthMelodyLoop(); });
       }
     }, 200);
+  };
+
+  const handleRevealYesPlaylist = () => {
+    setIsYesRevealed(true);
+    // Smoothly start playback if paused
+    const audio = audioRef.current;
+    if (audio && currentTrack?.audioUrl) {
+      if (!audio.src || audio.src === '' || audio.src === 'about:blank') {
+        audio.src = currentTrack.audioUrl;
+      }
+      audio.play().then(() => setIsPlaying(true))
+        .catch(() => { setIsPlaying(true); startSynthMelodyLoop(); });
+    }
+    // Scroll down to playlist smoothly
+    setTimeout(() => {
+      const playlistElem = document.getElementById('playlist-container');
+      if (playlistElem) {
+        playlistElem.scrollIntoView({ behavior: 'smooth' });
+      }
+    }, 150);
   };
 
   // ─── Web Audio Synth Fallback ───────────────────────────
@@ -293,6 +317,8 @@ export default function App() {
   if (currentState === 'EXPIRED') return <InfiniteGratitudeLoop />;
 
   const isInitial = currentState === 'INITIAL';
+  const isYes = currentState === 'YES';
+  const showPlayer = !isYes || isYesRevealed;
 
   // ─── Render ────────────────────────────────────────────
   return (
@@ -302,13 +328,17 @@ export default function App() {
 
       <main className="relative z-10 flex-1 flex flex-col items-center">
         
-        {/* 1. Portada Hero Estilo Apple SOLO en estado INICIAL */}
+        {/* 1. Hero Sections */}
         {isInitial && (
           <Header playlistTitle={null} />
         )}
 
-        {/* 2. Banner de Estado y Nota (únicamente al contestar una opción) */}
-        {!isInitial && (
+        {isYes && (
+          <YesHeroSection onRevealPlaylist={handleRevealYesPlaylist} />
+        )}
+
+        {/* 2. Banner de Estado y Nota (para NO, TIME, MAYBE) */}
+        {!isInitial && !isYes && (
           <div className="w-full pt-6">
             {currentState === 'NO' && <GraceTimerBanner />}
             {activePlaylist.note && (
@@ -320,22 +350,37 @@ export default function App() {
           </div>
         )}
 
-        {/* 3. Playlist Section */}
-        <div className="w-full">
-          <HeartMeshPlaylist
-            playlist={playlist}
-            currentTrack={currentTrack}
-            isPlaying={isPlaying}
-            onSelectTrack={handleSelectTrack}
-            onTogglePlay={handleTogglePlay}
-            likesMap={likesMap}
-            onLikeTrack={handleLikeTrack}
-          />
-        </div>
+        {/* 3. Playlist Section (Show for INITIAL, NO, TIME, MAYBE, or for YES when revealed) */}
+        {(!isYes || isYesRevealed) && (
+          <motion.div
+            id="playlist-container"
+            initial={isYes ? { opacity: 0, y: 30 } : { opacity: 1 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, ease: "easeOut" }}
+            className="w-full"
+          >
+            <HeartMeshPlaylist
+              playlist={playlist}
+              currentTrack={currentTrack}
+              isPlaying={isPlaying}
+              onSelectTrack={handleSelectTrack}
+              onTogglePlay={handleTogglePlay}
+              likesMap={likesMap}
+              onLikeTrack={handleLikeTrack}
+            />
+          </motion.div>
+        )}
 
-        {/* 4. Tarjeta especial de Tata al elegir SÍ (al hacer scroll bajo la playlist) */}
-        {currentState === 'YES' && (
-          <TataCard />
+        {/* 4. Tarjeta especial de Tata al elegir SÍ (cuando la playlist es revelada) */}
+        {isYes && isYesRevealed && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, delay: 0.2 }}
+            className="w-full"
+          >
+            <TataCard />
+          </motion.div>
         )}
 
         {/* 5. Dedicatoria Escrita Simple (SOLO en estado INICIAL) */}
@@ -367,20 +412,22 @@ export default function App() {
       </main>
 
       {/* Bottom Floating Player */}
-      <FloatingPlayer
-        currentTrack={currentTrack}
-        isPlaying={isPlaying}
-        onTogglePlay={handleTogglePlay}
-        onSkipNext={handleSkipNext}
-        onSkipPrevious={handleSkipPrevious}
-        currentTime={currentTime}
-        duration={duration}
-        onSeek={handleSeek}
-        isLooping={isLooping}
-        onToggleLoop={() => setIsLooping(!isLooping)}
-        volume={volume}
-        onChangeVolume={handleChangeVolume}
-      />
+      {showPlayer && (
+        <FloatingPlayer
+          currentTrack={currentTrack}
+          isPlaying={isPlaying}
+          onTogglePlay={handleTogglePlay}
+          onSkipNext={handleSkipNext}
+          onSkipPrevious={handleSkipPrevious}
+          currentTime={currentTime}
+          duration={duration}
+          onSeek={handleSeek}
+          isLooping={isLooping}
+          onToggleLoop={() => setIsLooping(!isLooping)}
+          volume={volume}
+          onChangeVolume={handleChangeVolume}
+        />
+      )}
 
       <LoveLetterModal isOpen={isLoveLetterOpen} onClose={() => setIsLoveLetterOpen(false)} />
       <TheQuestionModal isOpen={isQuestionOpen} onClose={() => setIsQuestionOpen(false)} onSelectDecision={handleSelectDecision} />

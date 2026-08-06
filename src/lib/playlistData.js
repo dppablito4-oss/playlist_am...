@@ -56,12 +56,6 @@ export const PLAYLISTS = {
   YES: {
     title: "Construir Desde Cero",
     theme: "emerald",
-    note: {
-      heading: "Nota de Alegría",
-      body: "Gracias por darme esta oportunidad. No quiero volver al pasado ni borrar nuestros errores. Quiero conocerte otra vez, desde la calma, con la verdad que antes no supe decir y con el hombre en el que me convertí. Gracias por abrir esta puerta.",
-      signature: "— Samuel",
-      emoji: "🌹"
-    },
     tataNote: {
       body: "También me acordé de él. Nunca entendí por qué te gustaba tanto... pero siempre me hacía feliz verte sonreír cuando hablabas de él.",
       signature: "— Samuel"

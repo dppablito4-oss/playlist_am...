@@ -2,6 +2,40 @@ import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Play, Pause, Heart, Music, Clock } from 'lucide-react';
 
+function TrackCover({ track, isActive, isPlaying }) {
+  const [imageError, setImageError] = useState(false);
+  const coverSrc = track.coverUrl || track.cover;
+
+  return (
+    <div className="relative w-11 h-11 sm:w-14 sm:h-14 rounded-xl overflow-hidden shadow-md flex-shrink-0 bg-gradient-to-tr from-burgundy-dark via-obsidian-surface to-rosegold-dark/40 flex items-center justify-center border border-rosegold-deep/20">
+      {!imageError && coverSrc ? (
+        <img
+          src={coverSrc}
+          alt={track.title}
+          onError={() => setImageError(true)}
+          className={`w-full h-full object-cover transition-transform duration-500 ${
+            isActive && isPlaying ? 'scale-105' : 'group-hover:scale-110'
+          }`}
+        />
+      ) : (
+        <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-rosegold-dark/50 to-obsidian-deep text-rosegold-light">
+          <Music className="w-5 h-5 text-rosegold-mid" />
+        </div>
+      )}
+      
+      <div className={`absolute inset-0 flex items-center justify-center bg-obsidian-deep/50 transition-opacity duration-200 ${
+        isActive ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'
+      }`}>
+        {isActive && isPlaying ? (
+          <Pause className="w-5 h-5 text-rosegold-light drop-shadow-lg" />
+        ) : (
+          <Play className="w-5 h-5 text-rosegold-light ml-0.5 drop-shadow-lg" />
+        )}
+      </div>
+    </div>
+  );
+}
+
 export default function HeartMeshPlaylist({
   playlist,
   currentTrack,
@@ -119,25 +153,8 @@ export default function HeartMeshPlaylist({
                     )}
                   </div>
 
-                  {/* Album Cover */}
-                  <div className="relative w-11 h-11 sm:w-14 sm:h-14 rounded-xl overflow-hidden shadow-md flex-shrink-0">
-                    <img
-                      src={track.cover}
-                      alt={track.title}
-                      className={`w-full h-full object-cover transition-transform duration-500 ${
-                        isActive && isPlaying ? 'scale-105' : 'group-hover:scale-110'
-                      }`}
-                    />
-                    <div className={`absolute inset-0 flex items-center justify-center bg-obsidian-deep/50 transition-opacity duration-200 ${
-                      isActive ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'
-                    }`}>
-                      {isActive && isPlaying ? (
-                        <Pause className="w-5 h-5 text-rosegold-light drop-shadow-lg" />
-                      ) : (
-                        <Play className="w-5 h-5 text-rosegold-light ml-0.5 drop-shadow-lg" />
-                      )}
-                    </div>
-                  </div>
+                  {/* Album Cover with Fallback */}
+                  <TrackCover track={track} isActive={isActive} isPlaying={isPlaying} />
 
                   {/* Track Info */}
                   <div className="min-w-0">

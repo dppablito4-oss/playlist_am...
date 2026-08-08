@@ -106,7 +106,7 @@ export default function TheQuestionModal({ isOpen, onClose, onSelectDecision }) 
           </h2>
 
           <p className="text-xs text-rosegold-deep uppercase tracking-widest mb-6 font-sans font-medium">
-            Saly, esta respuesta abrirá tu camino
+            Sea cual sea tu respuesta, estará bien.
           </p>
 
           {/* Question Quote Box */}

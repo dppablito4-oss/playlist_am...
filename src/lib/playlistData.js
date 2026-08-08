@@ -194,7 +194,7 @@ export const PLAYLISTS = {
     theme: "rose",
     note: {
       heading: "Antes de terminar...",
-      body: "Acepto tu decisión. Aunque me duela, respeto el camino que has elegido. Gracias por haber sido mi primer gran amor. Te deseo paz, salud y felicidad en tu camino. Cuídate mucho.",
+      body: "Gracias por haber llegado hasta aquí y por tomarte el tiempo de escucharme. Respeto tu decisión. Me quedo agradecido por lo que compartimos y por todo lo que aprendí en el camino.\n\nTe deseo de corazón que seas muy feliz. Cuídate mucho.",
       signature: "— Samuel",
       emoji: "✨"
     },

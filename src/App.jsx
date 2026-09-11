@@ -1,458 +1,115 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { MessageSquareHeart, Info } from 'lucide-react';
-import BackgroundCanvas from './components/BackgroundCanvas';
-import GeometricCornerHearts from './components/GeometricCornerHearts';
-import Header from './components/Header';
-import YesHeroSection from './components/YesHeroSection';
-import HeartMeshPlaylist from './components/HeartMeshPlaylist';
-import SimpleDedicatedLetter from './components/SimpleDedicatedLetter';
-import FloatingPlayer from './components/FloatingPlayer';
-import LoveLetterModal from './components/LoveLetterModal';
-import TheQuestionModal from './components/TheQuestionModal';
-import StateBannerNote from './components/StateBannerNote';
-import GraceTimerBanner from './components/GraceTimerBanner';
-import InfiniteGratitudeLoop from './components/InfiniteGratitudeLoop';
-import TataCard from './components/TataCard';
-import { getLikesState, incrementLike, getGlobalWebState, updateGlobalWebState } from './lib/supabase';
-import { PLAYLISTS } from './lib/playlistData';
+import React from 'react';
+import { ArrowDown, Feather, Heart, Leaf, Moon, Quote } from 'lucide-react';
+import { motion } from 'framer-motion';
 
-const FAREWELL_TIMEOUT_SECONDS = 30; // Timeout de prueba en 30s si no escucha activa
+const paragraphs = [
+  'Saly, escribo esto sin pedirte que vuelvas y sin esperar una respuesta. Solo necesitaba ordenar lo que siento y dejarte unas palabras honestas.',
+  'Te hice ilusión cuando yo mismo no tenía claro qué quería. Después desaparecí cuando estaba pasando por un momento muy difícil y, cuando regresé, quise recuperar algo que ya había cambiado. Sé que eso pudo confundirte y lastimarte. Lo siento.',
+  'También entendí que seguir hablando y ayudándote como si nada no me hace bien. Una parte de mí seguía esperando que estar presente hiciera que volvieras a sentir lo mismo. No es justo para ti ni para mí, así que necesito tomar distancia.',
+  'No te escribo para reclamarte, convencerte ni convertir esta despedida en otra oportunidad. Te quiero lo suficiente para respetar que tu vida siga por otro camino, aunque a mí me cueste aceptarlo.',
+  'Gracias por los momentos, por la confianza y por todo lo que aprendí contigo. Me quedo con lo bueno y también con la responsabilidad de aprender de lo que hice mal.',
+];
+
+function Section({ children, className = '' }) {
+  return (
+    <motion.section
+      initial={{ opacity: 0, y: 24 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true, margin: '-80px' }}
+      transition={{ duration: 0.8, ease: 'easeOut' }}
+      className={`relative ${className}`}
+    >
+      {children}
+    </motion.section>
+  );
+}
 
 export default function App() {
-  // ─── State Machine ──────────────────────────────────────
-  // 'INITIAL' | 'YES' | 'TIME' | 'MAYBE' | 'NO' | 'EXPIRED'
-  const [currentState, setCurrentState] = useState('INITIAL');
-  const [secondsLeft, setSecondsLeft] = useState(FAREWELL_TIMEOUT_SECONDS);
-  const [isYesRevealed, setIsYesRevealed] = useState(false);
-  const [audioNotice, setAudioNotice] = useState(null);
-
-  const activePlaylist = PLAYLISTS[currentState] || PLAYLISTS.INITIAL;
-  const playlist = activePlaylist.tracks;
-
-  // ─── Audio & Playback State ─────────────────────────────
-  const [currentTrack, setCurrentTrack] = useState(playlist[0]);
-  const [isPlaying, setIsPlaying] = useState(false);
-  const [currentTime, setCurrentTime] = useState(0);
-  const [duration, setDuration] = useState(234);
-  const [volume, setVolume] = useState(0.85);
-  const [isLooping, setIsLooping] = useState(false);
-
-  // ─── UI State ───────────────────────────────────────────
-  const [likesMap, setLikesMap] = useState({});
-  const [isLoveLetterOpen, setIsLoveLetterOpen] = useState(false);
-  const [isQuestionOpen, setIsQuestionOpen] = useState(false);
-
-  // ─── Refs for Stale Closure Prevention ──────────────────
-  const audioRef = useRef(null);
-  const audioCtxRef = useRef(null);
-  const synthTimerRef = useRef(null);
-
-  const currentTrackRef = useRef(currentTrack);
-  const playlistRef = useRef(playlist);
-  const currentStateRef = useRef(currentState);
-  const isLoopingRef = useRef(isLooping);
-
-  useEffect(() => {
-    currentTrackRef.current = currentTrack;
-    playlistRef.current = playlist;
-    currentStateRef.current = currentState;
-    isLoopingRef.current = isLooping;
-  }, [currentTrack, playlist, currentState, isLooping]);
-
-  // ─── 1. Load Initial Web State & Likes ──────────────────
-  useEffect(() => {
-    getLikesState().then(setLikesMap);
-
-    getGlobalWebState().then((stateData) => {
-      const { respuesta, fecha_respuesta } = stateData;
-
-      if (respuesta === 'NO' && fecha_respuesta) {
-        const elapsed = Math.floor((Date.now() - new Date(fecha_respuesta).getTime()) / 1000);
-        if (elapsed >= FAREWELL_TIMEOUT_SECONDS) {
-          setCurrentState('EXPIRED');
-        } else {
-          setCurrentState('NO');
-          setSecondsLeft(FAREWELL_TIMEOUT_SECONDS - elapsed);
-        }
-      } else if (['YES', 'TIME', 'MAYBE'].includes(respuesta)) {
-        setCurrentState(respuesta);
-        if (PLAYLISTS[respuesta]) setCurrentTrack(PLAYLISTS[respuesta].tracks[0]);
-      }
-    });
-
-    const audio = new Audio();
-    audioRef.current = audio;
-    audio.volume = volume;
-
-    const handleTimeUpdate = () => setCurrentTime(audio.currentTime);
-    const handleLoadedMetadata = () => setDuration(audio.duration || 240);
-    const handleEndedListener = () => {
-      if (isLoopingRef.current) {
-        audio.currentTime = 0;
-        audio.play().then(() => setIsPlaying(true)).catch(() => {});
-        return;
-      }
-
-      const list = playlistRef.current || [];
-      const track = currentTrackRef.current;
-      const state = currentStateRef.current;
-      if (list.length === 0) return;
-
-      const idx = list.findIndex(t => t.id === track?.id);
-
-      if (state === 'NO' && idx === list.length - 1) {
-        audio.pause();
-        setIsPlaying(false);
-        setTimeout(() => {
-          setCurrentState('EXPIRED');
-        }, 2000);
-        return;
-      }
-
-      const nextTrack = list[(idx + 1) % list.length];
-      handleSelectTrack(nextTrack);
-    };
-
-    audio.addEventListener('timeupdate', handleTimeUpdate);
-    audio.addEventListener('loadedmetadata', handleLoadedMetadata);
-    audio.addEventListener('ended', handleEndedListener);
-
-    return () => {
-      audio.removeEventListener('timeupdate', handleTimeUpdate);
-      audio.removeEventListener('loadedmetadata', handleLoadedMetadata);
-      audio.removeEventListener('ended', handleEndedListener);
-      audio.pause();
-    };
-  }, []);
-
-  // ─── 2. Timer de Respaldo para Estado 'NO' ──────────────
-  useEffect(() => {
-    if (currentState !== 'NO') return;
-
-    const interval = setInterval(() => {
-      setSecondsLeft((prev) => {
-        if (prev <= 1) {
-          clearInterval(interval);
-          if (audioRef.current) audioRef.current.pause();
-          setIsPlaying(false);
-          setTimeout(() => {
-            setCurrentState('EXPIRED');
-          }, 2000);
-          return 0;
-        }
-        return prev - 1;
-      });
-    }, 1000);
-
-    return () => clearInterval(interval);
-  }, [currentState]);
-
-  // ─── Audio Helper with Discrete Error Fallback ───────────
-  const attemptPlayTrack = (track) => {
-    setAudioNotice(null);
-    const audio = audioRef.current;
-    if (!track) return;
-
-    if (audio && track.audioUrl) {
-      audio.src = track.audioUrl;
-      audio.currentTime = 0;
-      audio.play()
-        .then(() => {
-          setIsPlaying(true);
-          stopSynthMelodyLoop();
-        })
-        .catch((err) => {
-          console.warn('Audio play failed, activating synth fallback:', err);
-          setIsPlaying(true);
-          startSynthMelodyLoop();
-          setAudioNotice('Modo sintetizador romántico activado.');
-          setTimeout(() => setAudioNotice(null), 5000);
-        });
-    } else {
-      setIsPlaying(true);
-      startSynthMelodyLoop();
-      setAudioNotice('Modo sintetizador romántico activado.');
-      setTimeout(() => setAudioNotice(null), 5000);
-    }
-  };
-
-  // ─── 3. State Transition ─────────────────────────────────
-  const handleSelectDecision = async (decision) => {
-    setCurrentState(decision);
-    if (decision === 'YES') {
-      setIsYesRevealed(false);
-    }
-    stopSynthMelodyLoop();
-    await updateGlobalWebState(decision);
-
-    if (decision === 'NO') {
-      setSecondsLeft(FAREWELL_TIMEOUT_SECONDS);
-    }
-
-    const newPlaylist = PLAYLISTS[decision] || PLAYLISTS.INITIAL;
-    const firstTrack = newPlaylist.tracks[0];
-    setCurrentTrack(firstTrack);
-    setCurrentTime(0);
-    setIsPlaying(false);
-
-    if (audioRef.current && firstTrack?.audioUrl) {
-      audioRef.current.src = firstTrack.audioUrl;
-    }
-  };
-
-  const handleRevealYesPlaylist = () => {
-    setIsYesRevealed(true);
-    attemptPlayTrack(currentTrack);
-
-    // Smooth scroll to first track in playlist
-    setTimeout(() => {
-      const playlistElem = document.getElementById('playlist-container');
-      if (playlistElem) {
-        playlistElem.scrollIntoView({ behavior: 'smooth', block: 'start' });
-      }
-    }, 150);
-  };
-
-  // ─── Web Audio Synth Fallback ───────────────────────────
-  const playRomanticSynthesizer = (freq = 440) => {
-    try {
-      if (!audioCtxRef.current) {
-        audioCtxRef.current = new (window.AudioContext || window.webkitAudioContext)();
-      }
-      const ctx = audioCtxRef.current;
-      if (ctx.state === 'suspended') ctx.resume();
-      const osc = ctx.createOscillator();
-      const gain = ctx.createGain();
-      osc.type = 'sine';
-      osc.frequency.setValueAtTime(freq, ctx.currentTime);
-      gain.gain.setValueAtTime(0.01, ctx.currentTime);
-      gain.gain.exponentialRampToValueAtTime(0.15, ctx.currentTime + 0.1);
-      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 1.8);
-      osc.connect(gain);
-      gain.connect(ctx.destination);
-      osc.start();
-      osc.stop(ctx.currentTime + 1.8);
-    } catch (e) {
-      console.warn('AudioContext not supported', e);
-    }
-  };
-
-  const startSynthMelodyLoop = () => {
-    if (synthTimerRef.current) clearInterval(synthTimerRef.current);
-    const notes = [261.63, 329.63, 392.00, 523.25, 440.00, 349.23];
-    let noteIdx = 0;
-    synthTimerRef.current = setInterval(() => {
-      playRomanticSynthesizer(notes[noteIdx % notes.length]);
-      noteIdx++;
-      setCurrentTime(prev => (prev >= duration ? 0 : prev + 1));
-    }, 1200);
-  };
-
-  const stopSynthMelodyLoop = () => {
-    if (synthTimerRef.current) { clearInterval(synthTimerRef.current); synthTimerRef.current = null; }
-  };
-
-  // ─── Play / Pause ──────────────────────────────────────
-  const handleTogglePlay = () => {
-    const audio = audioRef.current;
-    if (!audio) return;
-    if (isPlaying) {
-      audio.pause();
-      stopSynthMelodyLoop();
-      setIsPlaying(false);
-    } else {
-      attemptPlayTrack(currentTrack);
-    }
-  };
-
-  // ─── Select Track ──────────────────────────────────────
-  const handleSelectTrack = (track) => {
-    if (!track) return;
-    setCurrentTrack(track);
-    setCurrentTime(0);
-    stopSynthMelodyLoop();
-    attemptPlayTrack(track);
-  };
-
-  const handleSkipNext = () => {
-    const currentList = playlistRef.current || playlist;
-    const track = currentTrackRef.current || currentTrack;
-    const i = currentList.findIndex(t => t.id === track?.id);
-    
-    if (currentState === 'NO' && i === currentList.length - 1) {
-      if (audioRef.current) audioRef.current.pause();
-      setIsPlaying(false);
-      
-      setTimeout(() => {
-        setCurrentState('EXPIRED');
-      }, 2000);
-      return;
-    }
-
-    const nextTrack = currentList[(i + 1) % currentList.length];
-    handleSelectTrack(nextTrack);
-  };
-
-  const handleSkipPrevious = () => {
-    const currentList = playlistRef.current || playlist;
-    const track = currentTrackRef.current || currentTrack;
-    const i = currentList.findIndex(t => t.id === track?.id);
-    const prevTrack = currentList[(i - 1 + currentList.length) % currentList.length];
-    handleSelectTrack(prevTrack);
-  };
-
-  const handleSeek = (t) => {
-    setCurrentTime(t);
-    if (audioRef.current && !isNaN(t)) { try { audioRef.current.currentTime = t; } catch (e) {} }
-  };
-
-  const handleChangeVolume = (v) => {
-    setVolume(v);
-    if (audioRef.current) audioRef.current.volume = v;
-  };
-
-  const handleLikeTrack = async (songId) => {
-    const c = await incrementLike(songId);
-    setLikesMap(prev => ({ ...prev, [songId]: c }));
-  };
-
-  // ─── EXPIRED: Infinite Gratitude Loop ──────────────────
-  if (currentState === 'EXPIRED') return <InfiniteGratitudeLoop />;
-
-  const isInitial = currentState === 'INITIAL';
-  const isYes = currentState === 'YES';
-  const showPlayer = !isYes || isYesRevealed;
-
-  // ─── Render ────────────────────────────────────────────
   return (
-    <div className="min-h-screen relative overflow-hidden bg-obsidian text-rosegold selection:bg-rosegold-dark selection:text-white flex flex-col pb-44 sm:pb-36">
-      <BackgroundCanvas />
-      <GeometricCornerHearts />
+    <div className="min-h-screen overflow-hidden bg-obsidian text-rosegold-light">
+      <div className="pointer-events-none fixed inset-0 bg-[radial-gradient(circle_at_50%_0%,rgba(158,43,72,0.28),transparent_42%),linear-gradient(180deg,#12070b_0%,#080406_50%,#050304_100%)]" />
+      <div className="pointer-events-none fixed -left-32 top-1/3 h-72 w-72 rounded-full bg-rosegold-dark/10 blur-3xl" />
+      <div className="pointer-events-none fixed -right-32 bottom-1/4 h-80 w-80 rounded-full bg-burgundy-vibrant/10 blur-3xl" />
 
-      <main className="relative z-10 flex-1 flex flex-col items-center">
-        
-        {/* 1. Hero Sections */}
-        {isInitial && (
-          <Header playlistTitle={null} />
-        )}
-
-        {isYes && (
-          <YesHeroSection
-            onRevealPlaylist={handleRevealYesPlaylist}
-            isRevealed={isYesRevealed}
-          />
-        )}
-
-        {/* 2. Banner de Estado y Nota (para NO, TIME, MAYBE) */}
-        {!isInitial && !isYes && (
-          <div className="w-full pt-6">
-            {currentState === 'NO' && <GraceTimerBanner />}
-            {activePlaylist.note && (
-              <StateBannerNote
-                state={currentState}
-                note={activePlaylist.note}
-              />
-            )}
+      <main className="relative z-10 mx-auto max-w-4xl px-5 pb-24 sm:px-8">
+        <header className="flex min-h-[82vh] flex-col justify-center py-20">
+          <div className="mb-8 flex items-center gap-3 text-[11px] font-semibold uppercase tracking-[0.3em] text-rosegold-deep">
+            <span className="h-px w-10 bg-rosegold-deep/60" />
+            Una última página
           </div>
-        )}
 
-        {/* 3. Playlist Section (Show for INITIAL, NO, TIME, MAYBE, or for YES when revealed) */}
-        {(!isYes || isYesRevealed) && (
-          <motion.div
-            id="playlist-container"
-            initial={isYes ? { opacity: 0, y: 30 } : { opacity: 1 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, ease: "easeOut" }}
-            className="w-full scroll-mt-6"
-          >
-            <HeartMeshPlaylist
-              playlist={playlist}
-              currentTrack={currentTrack}
-              isPlaying={isPlaying}
-              onSelectTrack={handleSelectTrack}
-              onTogglePlay={handleTogglePlay}
-              likesMap={likesMap}
-              onLikeTrack={handleLikeTrack}
-            />
-          </motion.div>
-        )}
+          <h1 className="max-w-3xl font-serif text-display font-medium leading-[0.98] text-rosegold-light text-glow-rosegold">
+            Lo que necesitaba decirte antes de dejarte ir.
+          </h1>
 
-        {/* 4. Tarjeta especial de Tata al elegir SÍ (cuando la playlist es revelada) */}
-        {isYes && isYesRevealed && (
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, delay: 0.2 }}
-            className="w-full"
-          >
-            <TataCard />
-          </motion.div>
-        )}
+          <p className="mt-8 max-w-xl font-serif text-xl italic leading-relaxed text-rosegold-mid sm:text-2xl">
+            No es una pregunta. No es una prueba. Es solamente una despedida hecha con calma.
+          </p>
 
-        {/* 5. Dedicatoria Escrita Simple (SOLO en estado INICIAL) */}
-        {isInitial && (
-          <div className="w-full mt-12">
-            <SimpleDedicatedLetter />
+          <div className="mt-14 flex items-center gap-4 text-rosegold-deep/70">
+            <div className="h-12 w-px bg-gradient-to-b from-rosegold-deep to-transparent" />
+            <span className="text-xs uppercase tracking-[0.22em]">Lee cuando quieras</span>
           </div>
-        )}
 
-        {/* 6. Botón "Abrir La Pregunta Final" al pie de la dedicatoria (SOLO en estado INICIAL) */}
-        {isInitial && (
-          <motion.div
-            initial={{ opacity: 0, scale: 0.9 }}
-            whileInView={{ opacity: 1, scale: 1 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.8 }}
-            className="mt-6 mb-16"
-          >
-            <button
-              onClick={() => setIsQuestionOpen(true)}
-              className="px-7 py-3.5 rounded-full bg-gradient-to-r from-rosegold-dark via-rosegold-mid to-rosegold-light text-obsidian text-xs sm:text-sm font-extrabold tracking-wide flex items-center space-x-2.5 shadow-rose-glow hover:shadow-rose-glow-lg transition-all duration-300 group cursor-pointer min-h-[48px]"
-            >
-              <MessageSquareHeart className="w-4 h-4 text-obsidian group-hover:scale-110 transition-transform" />
-              <span>Abrir La Pregunta Final</span>
-            </button>
-          </motion.div>
-        )}
+          <ArrowDown aria-hidden="true" className="mt-16 h-5 w-5 animate-bounce text-rosegold-deep/70" />
+        </header>
 
+        <Section className="grid gap-10 border-t border-rosegold-light/10 py-20 lg:grid-cols-[0.7fr_1.3fr]">
+          <div>
+            <div className="mb-5 flex h-11 w-11 items-center justify-center rounded-full border border-rosegold-deep/30 bg-rosegold-dark/10">
+              <Feather className="h-5 w-5 text-rosegold-mid" />
+            </div>
+            <p className="text-xs font-semibold uppercase tracking-[0.26em] text-rosegold-deep">La verdad</p>
+            <h2 className="mt-3 max-w-xs font-serif text-4xl leading-tight text-rosegold-light">Sin adornar lo que pasó.</h2>
+          </div>
+
+          <article className="glass-panel rounded-4xl p-7 shadow-burgundy-glow sm:p-12">
+            <Quote aria-hidden="true" className="mb-6 h-8 w-8 text-rosegold-deep/60" />
+            <div className="space-y-6 font-serif text-lg leading-relaxed text-rosegold-light/90 sm:text-xl">
+              {paragraphs.slice(0, 3).map((paragraph) => <p key={paragraph}>{paragraph}</p>)}
+            </div>
+          </article>
+        </Section>
+
+        <Section className="relative py-20">
+          <div className="absolute left-1/2 top-0 h-full w-px bg-gradient-to-b from-transparent via-rosegold-deep/30 to-transparent" />
+          <div className="relative mx-auto max-w-2xl px-8 text-center">
+            <Moon className="mx-auto mb-7 h-7 w-7 text-rosegold-mid" />
+            <p className="font-serif text-2xl italic leading-relaxed text-rosegold-light sm:text-3xl">
+              “A veces querer a alguien también significa dejar de pedirle que se quede.”
+            </p>
+          </div>
+        </Section>
+
+        <Section className="grid gap-10 border-t border-rosegold-light/10 py-20 lg:grid-cols-[1.3fr_0.7fr]">
+          <article className="order-2 space-y-6 font-serif text-lg leading-relaxed text-rosegold-light/90 sm:text-xl lg:order-1">
+            {paragraphs.slice(3).map((paragraph) => <p key={paragraph}>{paragraph}</p>)}
+          </article>
+
+          <div className="order-1 lg:order-2 lg:pl-8">
+            <div className="mb-5 flex h-11 w-11 items-center justify-center rounded-full border border-rosegold-deep/30 bg-rosegold-dark/10">
+              <Leaf className="h-5 w-5 text-rosegold-mid" />
+            </div>
+            <p className="text-xs font-semibold uppercase tracking-[0.26em] text-rosegold-deep">Lo que sigue</p>
+            <h2 className="mt-3 font-serif text-4xl leading-tight text-rosegold-light">Aprender a soltar sin odio.</h2>
+          </div>
+        </Section>
+
+        <Section className="border-t border-rosegold-light/10 py-24 text-center">
+          <Heart aria-hidden="true" className="mx-auto mb-7 h-8 w-8 fill-rosegold-dark/30 text-rosegold-mid" />
+          <p className="mx-auto max-w-xl font-serif text-2xl leading-relaxed text-rosegold-light sm:text-3xl">
+            Gracias por lo que fuimos. Te deseo paz, claridad y una vida bonita.
+          </p>
+          <div className="mt-12">
+            <span className="font-script text-5xl text-rosegold-mid">Samuel</span>
+            <p className="mt-3 text-[10px] uppercase tracking-[0.3em] text-rosegold-deep">Aquí termina esta página</p>
+          </div>
+        </Section>
+
+        <footer className="border-t border-rosegold-light/10 pt-8 text-center text-xs leading-relaxed text-rosegold-deep/70">
+          No hace falta responder. Cuídate mucho.
+        </footer>
       </main>
-
-      {/* Discrete Audio Notice Toast if Audio fails */}
-      <AnimatePresence>
-        {audioNotice && (
-          <motion.div
-            initial={{ opacity: 0, y: 15 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: 15 }}
-            className="fixed bottom-24 left-1/2 -translate-x-1/2 z-50 px-4 py-2 rounded-full glass-surface border border-rosegold-deep/30 text-[11px] text-rosegold-light/90 font-sans shadow-lg flex items-center gap-2 pointer-events-none"
-          >
-            <Info className="w-3.5 h-3.5 text-rosegold-mid flex-shrink-0" />
-            <span>{audioNotice}</span>
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-      {/* Bottom Floating Player */}
-      {showPlayer && (
-        <FloatingPlayer
-          currentTrack={currentTrack}
-          isPlaying={isPlaying}
-          onTogglePlay={handleTogglePlay}
-          onSkipNext={handleSkipNext}
-          onSkipPrevious={handleSkipPrevious}
-          currentTime={currentTime}
-          duration={duration}
-          onSeek={handleSeek}
-          isLooping={isLooping}
-          onToggleLoop={() => setIsLooping(!isLooping)}
-          volume={volume}
-          onChangeVolume={handleChangeVolume}
-        />
-      )}
-
-      <LoveLetterModal isOpen={isLoveLetterOpen} onClose={() => setIsLoveLetterOpen(false)} />
-      <TheQuestionModal isOpen={isQuestionOpen} onClose={() => setIsQuestionOpen(false)} onSelectDecision={handleSelectDecision} />
     </div>
   );
 }

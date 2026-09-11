@@ -124,7 +124,7 @@ export default function App() {
             aria-label="Comenzar a leer la carta"
             className="group mt-8 inline-flex w-fit items-center gap-2.5 rounded-full border border-rosegold-deep/30 bg-rosegold-dark/10 px-4 py-2 text-[11px] font-medium uppercase tracking-[0.2em] text-rosegold-deep transition-all duration-300 hover:border-rosegold-muted/60 hover:text-rosegold-light active:scale-95 sm:mt-12 sm:text-xs"
           >
-            <span>Comenzar a leer</span>
+            <span>c:"</span>
             <ArrowDown aria-hidden="true" className="h-3.5 w-3.5 transition-transform duration-300 group-hover:translate-y-0.5" />
           </button>
         </header>

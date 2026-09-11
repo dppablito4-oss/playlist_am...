@@ -3,11 +3,13 @@ import { ArrowDown, Feather, Heart, Leaf, Moon, Quote } from 'lucide-react';
 import { motion } from 'framer-motion';
 
 const paragraphs = [
-  'Saly, escribo esto sin pedirte que vuelvas y sin esperar una respuesta. Solo necesitaba ordenar lo que siento y dejarte unas palabras honestas.',
-  'Te hice ilusión cuando yo mismo no tenía claro qué quería. Después desaparecí cuando estaba pasando por un momento muy difícil y, cuando regresé, quise recuperar algo que ya había cambiado. Sé que eso pudo confundirte y lastimarte. Lo siento.',
-  'También entendí que seguir hablando y ayudándote como si nada no me hace bien. Una parte de mí seguía esperando que estar presente hiciera que volvieras a sentir lo mismo. No es justo para ti ni para mí, así que necesito tomar distancia.',
-  'No te escribo para reclamarte, convencerte ni convertir esta despedida en otra oportunidad. Te quiero lo suficiente para respetar que tu vida siga por otro camino, aunque a mí me cueste aceptarlo.',
-  'Gracias por los momentos, por la confianza y por todo lo que aprendí contigo. Me quedo con lo bueno y también con la responsabilidad de aprender de lo que hice mal.',
+  'Saly, esto es algo que quería decirte desde hace mucho tiempo. No te escribo para pedirte que vuelvas ni para que me respondas.',
+  'Primero, quiero pedirte perdón. Hace casi dos años aceptaste mi propuesta de ser novios y después desaparecí. Sé que pude haberte confundido, ilusionado o hecho pensar muchas cosas. Tenías todo el derecho de sentirte mal.',
+  'En ese tiempo estaba atravesando problemas de salud mental y depresión. Debí contártelo, pero no supe entender ni explicar lo que me estaba pasando. No lo digo como excusa: simplemente quiero que conozcas la razón de mi ausencia.',
+  'Cuando regresé, tú me pediste que parara y debí respetarlo completamente. Aun así, mantuve conversaciones y palabras cariñosas porque una parte de mí seguía pensando que quizá todavía existía una posibilidad. Ahora entiendo que no puedo obligarte a amarme, confiar en mí ni perdonarme.',
+  'También entendí que esta dinámica de seguir hablando y ayudándonos mientras yo mantengo esperanza no me hace bien. Por eso necesito tomar distancia y dejar de buscarte como antes. No es un castigo ni un reclamo; es algo que necesito hacer para poder seguir adelante.',
+  'Te deseo sinceramente lo mejor. No permitas que lo que pasó conmigo te haga cerrar el corazón ni te impida ser feliz. Eres una persona valiosa, inteligente y de buen corazón, y mereces vivir algo bonito y tranquilo.',
+  'Gracias por haber sido importante para mí y por haberme enseñado tanto. Me quedo con lo bueno, asumo lo que hice mal y te dejo seguir tu camino en paz.',
 ];
 
 function Section({ children, className = '' }) {
@@ -32,26 +34,26 @@ export default function App() {
       <div className="pointer-events-none fixed -right-32 bottom-1/4 h-80 w-80 rounded-full bg-burgundy-vibrant/10 blur-3xl" />
 
       <main className="relative z-10 mx-auto max-w-4xl px-5 pb-24 sm:px-8">
-        <header className="flex min-h-[82vh] flex-col justify-center py-20">
+        <header className="flex min-h-[76vh] flex-col justify-center py-20">
           <div className="mb-8 flex items-center gap-3 text-[11px] font-semibold uppercase tracking-[0.3em] text-rosegold-deep">
             <span className="h-px w-10 bg-rosegold-deep/60" />
-            Una última página
+            Carta personal
           </div>
 
           <h1 className="max-w-3xl font-serif text-display font-medium leading-[0.98] text-rosegold-light text-glow-rosegold">
-            Lo que necesitaba decirte antes de dejarte ir.
+            Lo que necesitaba decirte.
           </h1>
 
-          <p className="mt-8 max-w-xl font-serif text-xl italic leading-relaxed text-rosegold-mid sm:text-2xl">
-            No es una pregunta. No es una prueba. Es solamente una despedida hecha con calma.
+          <p className="mt-8 max-w-xl font-serif text-xl leading-relaxed text-rosegold-mid sm:text-2xl">
+            No es una pregunta ni una prueba. Solo son unas palabras que necesitaba dejar escritas con calma.
           </p>
 
           <div className="mt-14 flex items-center gap-4 text-rosegold-deep/70">
-            <div className="h-12 w-px bg-gradient-to-b from-rosegold-deep to-transparent" />
-            <span className="text-xs uppercase tracking-[0.22em]">Lee cuando quieras</span>
+            <div className="h-px w-12 bg-rosegold-deep/50" />
+            <span className="text-xs uppercase tracking-[0.22em]">Sin necesidad de responder</span>
           </div>
 
-          <ArrowDown aria-hidden="true" className="mt-16 h-5 w-5 animate-bounce text-rosegold-deep/70" />
+          <ArrowDown aria-hidden="true" className="mt-12 h-4 w-4 text-rosegold-deep/50" />
         </header>
 
         <Section className="grid gap-10 border-t border-rosegold-light/10 py-20 lg:grid-cols-[0.7fr_1.3fr]">
@@ -59,7 +61,7 @@ export default function App() {
             <div className="mb-5 flex h-11 w-11 items-center justify-center rounded-full border border-rosegold-deep/30 bg-rosegold-dark/10">
               <Feather className="h-5 w-5 text-rosegold-mid" />
             </div>
-            <p className="text-xs font-semibold uppercase tracking-[0.26em] text-rosegold-deep">La verdad</p>
+            <p className="text-xs font-semibold uppercase tracking-[0.26em] text-rosegold-deep">Lo que quiero reconocer</p>
             <h2 className="mt-3 max-w-xs font-serif text-4xl leading-tight text-rosegold-light">Sin adornar lo que pasó.</h2>
           </div>
 
@@ -90,19 +92,19 @@ export default function App() {
             <div className="mb-5 flex h-11 w-11 items-center justify-center rounded-full border border-rosegold-deep/30 bg-rosegold-dark/10">
               <Leaf className="h-5 w-5 text-rosegold-mid" />
             </div>
-            <p className="text-xs font-semibold uppercase tracking-[0.26em] text-rosegold-deep">Lo que sigue</p>
-            <h2 className="mt-3 font-serif text-4xl leading-tight text-rosegold-light">Aprender a soltar sin odio.</h2>
+            <p className="text-xs font-semibold uppercase tracking-[0.26em] text-rosegold-deep">Lo que necesito hacer</p>
+            <h2 className="mt-3 font-serif text-4xl leading-tight text-rosegold-light">Tomar distancia con respeto.</h2>
           </div>
         </Section>
 
         <Section className="border-t border-rosegold-light/10 py-24 text-center">
           <Heart aria-hidden="true" className="mx-auto mb-7 h-8 w-8 fill-rosegold-dark/30 text-rosegold-mid" />
-          <p className="mx-auto max-w-xl font-serif text-2xl leading-relaxed text-rosegold-light sm:text-3xl">
-            Gracias por lo que fuimos. Te deseo paz, claridad y una vida bonita.
-          </p>
+            <p className="mx-auto max-w-xl font-serif text-2xl leading-relaxed text-rosegold-light sm:text-3xl">
+              Me quedo con lo bueno, asumo lo que hice mal y te dejo seguir tu camino en paz.
+            </p>
           <div className="mt-12">
             <span className="font-script text-5xl text-rosegold-mid">Samuel</span>
-            <p className="mt-3 text-[10px] uppercase tracking-[0.3em] text-rosegold-deep">Aquí termina esta página</p>
+            <p className="mt-3 text-[10px] uppercase tracking-[0.3em] text-rosegold-deep">Con cariño y sin esperar respuesta</p>
           </div>
         </Section>
 

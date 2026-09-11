@@ -15,7 +15,7 @@ const letterParts = [
     paragraphs: [
       'Hay algo que tampoco llegué a contarte porque me daba mucha vergüenza. Cuando me alejé y dejé de hablarte estaba pasando por un momento bastante malo emocionalmente. Con el tiempo entendí que lo que estaba viviendo era una depresión. No tenía ganas de estudiar, salir ni hacer casi nada, y en aquel momento ni siquiera comprendía bien lo que me estaba pasando.',
       'Tal vez debí confiar en ti y decirte que no estaba bien, pero no lo hice. Y no te cuento esto para justificarme ni para cambiar la forma en la que ves lo que pasó. Mis errores fueron míos. Simplemente no quería despedirme dejando también esa parte sin decir.',
-      'Durante todo este último año seguimos hablando con cierta normalidad. Muchas veces estuve ahí cuando necesitabas ayuda con algún trabajo, algún tema o cualquier cosa. Y quiero dejar algo claro: nunca pensé que te aprovecharas de mí ni que me buscaras con malas intenciones.',
+      'Durante todo este último año seguimos hablando con cierta normalidad. Muchas veces estuve ahí cuando necesitabas ayuda con algún trabajo, algún tema o cualquier cosa.',
       'El problema fue que yo nunca conseguí separar del todo las cosas.',
       'Me gustaba poder ayudarte, hablar contigo, saber de ti. Pero en algún punto empecé a guardar una pequeña esperanza de que quizá algún día algo pudiera cambiar. Pensaba que tal vez el tiempo iba a hacer que volvieras a verme como antes.',
       'Y terminé aferrándome más a esa posibilidad que a la realidad.',

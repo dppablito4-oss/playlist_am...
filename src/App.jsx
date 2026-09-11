@@ -1,6 +1,6 @@
 import React from 'react';
 import { ArrowDown, Heart, Quote } from 'lucide-react';
-import { motion } from 'framer-motion';
+import { motion, useScroll, useSpring } from 'framer-motion';
 
 const letterParts = [
   {
@@ -57,19 +57,20 @@ const letterParts = [
 function LetterPart({ paragraphs, index }) {
   return (
     <motion.section
-      initial={{ opacity: 0, y: 18 }}
+      id={`parte-${index + 1}`}
+      initial={{ opacity: 0, y: 16 }}
       whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true, margin: '-50px' }}
-      transition={{ duration: 0.65, ease: 'easeOut' }}
-      className="border-t border-rosegold-light/10 py-12 first:border-t-0 sm:py-16"
+      viewport={{ once: true, margin: '-20px' }}
+      transition={{ duration: 0.6, ease: 'easeOut' }}
+      className="border-t border-rosegold-light/10 py-9 first:border-t-0 sm:py-16 scroll-mt-6 sm:scroll-mt-10"
     >
-      <div className="mb-6 flex items-center gap-3 text-[10px] font-semibold uppercase tracking-[0.24em] text-rosegold-deep sm:mb-8 sm:text-xs sm:tracking-[0.28em]">
-        <span className="h-px w-8 bg-rosegold-deep/50" />
+      <div className="mb-5 flex items-center gap-3 text-[10px] font-semibold uppercase tracking-[0.24em] text-rosegold-deep sm:mb-8 sm:text-xs sm:tracking-[0.28em]">
+        <span className="h-px w-6 bg-rosegold-deep/50 sm:w-8" />
         Parte {index + 1}
       </div>
-      <div className="glass-panel rounded-3xl p-6 shadow-burgundy-glow sm:rounded-4xl sm:p-12">
-        {index === 0 && <Quote aria-hidden="true" className="mb-6 h-7 w-7 text-rosegold-deep/60 sm:h-8 sm:w-8" />}
-        <div className="space-y-5 font-serif text-[1.08rem] leading-[1.72] text-rosegold-light/90 sm:space-y-6 sm:text-xl sm:leading-relaxed">
+      <div className="glass-panel rounded-2xl p-5 shadow-burgundy-glow sm:rounded-4xl sm:p-12">
+        {index === 0 && <Quote aria-hidden="true" className="mb-5 h-6 w-6 text-rosegold-deep/60 sm:mb-6 sm:h-8 sm:w-8" />}
+        <div className="space-y-4 font-serif text-[1.04rem] leading-[1.76] text-rosegold-light/90 sm:space-y-6 sm:text-xl sm:leading-relaxed prose-letter">
           {paragraphs.map((paragraph) => <p key={paragraph}>{paragraph}</p>)}
         </div>
       </div>
@@ -78,34 +79,70 @@ function LetterPart({ paragraphs, index }) {
 }
 
 export default function App() {
-  return (
-    <div className="min-h-screen overflow-hidden bg-obsidian text-rosegold-light">
-      <div className="pointer-events-none fixed inset-0 bg-[radial-gradient(circle_at_50%_0%,rgba(158,43,72,0.24),transparent_42%),linear-gradient(180deg,#12070b_0%,#080406_50%,#050304_100%)]" />
-      <div className="pointer-events-none fixed -left-32 top-1/3 h-72 w-72 rounded-full bg-rosegold-dark/10 blur-3xl" />
-      <div className="pointer-events-none fixed -right-32 bottom-1/4 h-80 w-80 rounded-full bg-burgundy-vibrant/10 blur-3xl" />
+  const { scrollYProgress } = useScroll();
+  const scaleX = useSpring(scrollYProgress, {
+    stiffness: 100,
+    damping: 30,
+    restDelta: 0.001,
+  });
 
-      <main className="relative z-10 mx-auto max-w-3xl px-4 pb-16 sm:px-8 sm:pb-24">
-        <header className="flex min-h-[72vh] flex-col justify-center py-16 sm:min-h-[78vh] sm:py-20">
-          <p className="mb-7 text-[10px] font-semibold uppercase tracking-[0.25em] text-rosegold-deep sm:mb-8 sm:text-xs sm:tracking-[0.3em]">Carta personal</p>
-          <h1 className="font-serif text-[clamp(3rem,15vw,5.5rem)] font-medium leading-[0.94] text-rosegold-light text-glow-rosegold">Hola Saly,</h1>
-          <p className="mt-7 max-w-2xl font-serif text-xl leading-relaxed text-rosegold-mid sm:mt-9 sm:text-2xl">
+  const handleStartReading = () => {
+    const target = document.getElementById('parte-1');
+    if (target) {
+      target.scrollIntoView({ behavior: 'smooth' });
+    }
+  };
+
+  return (
+    <div className="min-h-screen overflow-x-hidden bg-obsidian text-rosegold-light">
+      {/* Indicador sutil de lectura en la parte superior */}
+      <motion.div
+        className="fixed left-0 right-0 top-0 z-50 h-[2.5px] origin-left bg-gradient-to-r from-rosegold-deep via-rosegold-light to-champagne shadow-[0_0_8px_rgba(242,203,190,0.6)]"
+        style={{ scaleX }}
+      />
+
+      <div className="pointer-events-none fixed inset-0 bg-[radial-gradient(circle_at_50%_0%,rgba(158,43,72,0.24),transparent_42%),linear-gradient(180deg,#12070b_0%,#080406_50%,#050304_100%)]" />
+      <div className="pointer-events-none fixed -left-24 top-1/3 h-56 w-56 rounded-full bg-rosegold-dark/10 blur-3xl sm:-left-32 sm:h-72 sm:w-72" />
+      <div className="pointer-events-none fixed -right-24 bottom-1/4 h-64 w-64 rounded-full bg-burgundy-vibrant/10 blur-3xl sm:-right-32 sm:h-80 sm:w-80" />
+
+      <main className="relative z-10 mx-auto max-w-3xl px-4 pb-14 pt-safe pb-safe sm:px-8 sm:pb-24">
+        <header className="flex min-h-[72svh] flex-col justify-center py-12 sm:min-h-[78vh] sm:py-20">
+          <div className="mb-6 flex items-center gap-2.5 text-[10px] font-semibold uppercase tracking-[0.25em] text-rosegold-deep sm:mb-8 sm:text-xs sm:tracking-[0.3em]">
+            <span className="h-1.5 w-1.5 rounded-full bg-rosegold-deep/80 shadow-[0_0_6px_rgba(200,117,136,0.6)]" />
+            Carta personal
+          </div>
+          <h1 className="font-serif text-[clamp(2.75rem,13vw,5.5rem)] font-medium leading-[0.96] text-rosegold-light text-glow-rosegold break-words">
+            Hola Saly,
+          </h1>
+          <p className="mt-6 max-w-2xl font-serif text-lg leading-relaxed text-rosegold-mid sm:mt-9 sm:text-2xl sm:leading-relaxed">
             Quería escribirte esto porque siento que ya era momento de decir algunas cosas que durante bastante tiempo me guardé.
           </p>
-          <div className="mt-10 flex items-center gap-3 text-rosegold-deep/70 sm:mt-14 sm:gap-4">
-            <span className="h-px w-10 bg-rosegold-deep/50 sm:w-12" />
-            <span className="text-[10px] uppercase tracking-[0.18em] sm:text-xs sm:tracking-[0.22em]">Lee cuando estés lista</span>
+          <div className="mt-8 flex items-center gap-3 text-rosegold-deep/70 sm:mt-12 sm:gap-4">
+            <span className="h-px w-8 bg-rosegold-deep/50 sm:w-12" />
+            <span className="text-[10px] uppercase tracking-[0.18em] sm:text-xs sm:tracking-[0.22em]">Lee a tu propio ritmo</span>
           </div>
-          <ArrowDown aria-hidden="true" className="mt-10 h-4 w-4 text-rosegold-deep/50 sm:mt-12" />
+
+          <button
+            type="button"
+            onClick={handleStartReading}
+            aria-label="Comenzar a leer la carta"
+            className="group mt-8 inline-flex w-fit items-center gap-2.5 rounded-full border border-rosegold-deep/30 bg-rosegold-dark/10 px-4 py-2 text-[11px] font-medium uppercase tracking-[0.2em] text-rosegold-deep transition-all duration-300 hover:border-rosegold-muted/60 hover:text-rosegold-light active:scale-95 sm:mt-12 sm:text-xs"
+          >
+            <span>Comenzar a leer</span>
+            <ArrowDown aria-hidden="true" className="h-3.5 w-3.5 transition-transform duration-300 group-hover:translate-y-0.5" />
+          </button>
         </header>
 
         <article aria-label="Carta para Saly">
-          {letterParts.map((part, index) => <LetterPart key={index} paragraphs={part.paragraphs} index={index} />)}
+          {letterParts.map((part, index) => (
+            <LetterPart key={index} paragraphs={part.paragraphs} index={index} />
+          ))}
         </article>
 
-        <footer className="border-t border-rosegold-light/10 pt-8 text-center sm:pt-10">
-          <Heart aria-hidden="true" className="mx-auto mb-5 h-7 w-7 fill-rosegold-dark/30 text-rosegold-mid" />
-          <p className="font-script text-4xl text-rosegold-mid sm:text-5xl">Samuel</p>
-          <p className="mt-4 text-xs leading-relaxed text-rosegold-deep/70">No hace falta responder. Cuídate mucho.</p>
+        <footer className="border-t border-rosegold-light/10 pt-8 pb-10 text-center sm:pt-10 sm:pb-12">
+          <Heart aria-hidden="true" className="mx-auto mb-4 h-6 w-6 fill-rosegold-dark/30 text-rosegold-mid sm:h-7 sm:w-7" />
+          <p className="font-script text-3xl text-rosegold-mid sm:text-5xl">Samuel</p>
+          <p className="mt-3 text-xs leading-relaxed text-rosegold-deep/70 px-4">No hace falta responder. Cuídate mucho.</p>
         </footer>
       </main>
     </div>

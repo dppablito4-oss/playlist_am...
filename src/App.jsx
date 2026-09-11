@@ -54,27 +54,67 @@ const letterParts = [
   },
 ];
 
-function LetterPart({ paragraphs, index }) {
+const sectionTransitions = [
+  null,
+  'Lo que nunca llegué a decirte',
+  'Dejar de esperar un «quizá»',
+  'Guardar lo bueno y desearte lo mejor',
+];
+
+function SectionBreak({ phrase }) {
   return (
-    <motion.section
-      id={`parte-${index + 1}`}
-      initial={{ opacity: 0, y: 16 }}
-      whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true, margin: '-20px' }}
-      transition={{ duration: 0.6, ease: 'easeOut' }}
-      className="border-t border-rosegold-light/10 py-9 first:border-t-0 sm:py-16 scroll-mt-6 sm:scroll-mt-10"
-    >
-      <div className="mb-5 flex items-center gap-3 text-[10px] font-semibold uppercase tracking-[0.24em] text-rosegold-deep sm:mb-8 sm:text-xs sm:tracking-[0.28em]">
-        <span className="h-px w-6 bg-rosegold-deep/50 sm:w-8" />
-        Parte {index + 1}
-      </div>
-      <div className="glass-panel rounded-2xl p-5 shadow-burgundy-glow sm:rounded-4xl sm:p-12">
-        {index === 0 && <Quote aria-hidden="true" className="mb-5 h-6 w-6 text-rosegold-deep/60 sm:mb-6 sm:h-8 sm:w-8" />}
-        <div className="space-y-4 font-serif text-[1.04rem] leading-[1.76] text-rosegold-light/90 sm:space-y-6 sm:text-xl sm:leading-relaxed prose-letter">
-          {paragraphs.map((paragraph) => <p key={paragraph}>{paragraph}</p>)}
+    <div className="my-10 flex items-center justify-center gap-3 sm:my-16" aria-hidden="true">
+      <motion.div
+        initial={{ scaleX: 0 }}
+        whileInView={{ scaleX: 1 }}
+        viewport={{ once: true, margin: '-40px' }}
+        transition={{ duration: 0.8, ease: 'easeOut' }}
+        className="h-px flex-1 origin-right bg-gradient-to-r from-transparent via-rosegold-deep/30 to-rosegold-mid/50"
+      />
+      <motion.div
+        initial={{ opacity: 0, scale: 0.92 }}
+        whileInView={{ opacity: 1, scale: 1 }}
+        viewport={{ once: true, margin: '-40px' }}
+        transition={{ duration: 0.6, delay: 0.15 }}
+        className="flex items-center gap-2 px-2 text-center"
+      >
+        <span className="h-1 w-1 rounded-full bg-rosegold-deep shadow-[0_0_6px_rgba(200,117,136,0.7)]" />
+        <span className="font-serif text-xs italic tracking-wider text-rosegold-mid/85 sm:text-sm">
+          {phrase}
+        </span>
+        <span className="h-1 w-1 rounded-full bg-rosegold-deep shadow-[0_0_6px_rgba(200,117,136,0.7)]" />
+      </motion.div>
+      <motion.div
+        initial={{ scaleX: 0 }}
+        whileInView={{ scaleX: 1 }}
+        viewport={{ once: true, margin: '-40px' }}
+        transition={{ duration: 0.8, ease: 'easeOut' }}
+        className="h-px flex-1 origin-left bg-gradient-to-l from-transparent via-rosegold-deep/30 to-rosegold-mid/50"
+      />
+    </div>
+  );
+}
+
+function LetterPart({ paragraphs, index }) {
+  const phrase = sectionTransitions[index];
+
+  return (
+    <div id={`parte-${index + 1}`} className="scroll-mt-6 sm:scroll-mt-10">
+      {phrase && <SectionBreak phrase={phrase} />}
+      <motion.section
+        initial={{ opacity: 0, y: 16 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: true, margin: '-20px' }}
+        transition={{ duration: 0.6, ease: 'easeOut' }}
+      >
+        <div className="glass-panel rounded-2xl p-5 shadow-burgundy-glow sm:rounded-4xl sm:p-12">
+          {index === 0 && <Quote aria-hidden="true" className="mb-5 h-6 w-6 text-rosegold-deep/60 sm:mb-6 sm:h-8 sm:w-8" />}
+          <div className="space-y-4 font-serif text-[1.04rem] leading-[1.76] text-rosegold-light/90 sm:space-y-6 sm:text-xl sm:leading-relaxed prose-letter">
+            {paragraphs.map((paragraph) => <p key={paragraph}>{paragraph}</p>)}
+          </div>
         </div>
-      </div>
-    </motion.section>
+      </motion.section>
+    </div>
   );
 }
 
